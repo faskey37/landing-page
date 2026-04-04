@@ -53,11 +53,16 @@ const Navbar = () => {
     }
   };
 
+  const handlePayFees = () => {
+    window.open('https://www.careerlauncher.com/payonline/getPayment-new.jsp', '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <nav className="w-full" style={{ backgroundColor: '#052c65' }}>
       <div style={{ paddingLeft: '80px', paddingRight: '80px' }}>
         <div className="flex justify-between items-center h-14">
           
+          {/* Navigation Links */}
           <div className="flex items-center space-x-8">
             <div className="hidden md:flex md:items-center md:space-x-2">
               {navItems.map((item) => (
@@ -77,8 +82,18 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div></div>
+          {/* Pay Fees Button */}
+          <div className="hidden md:block">
+            <button
+              onClick={handlePayFees}
+              className="px-5 py-1.5 rounded text-sm font-medium transition-colors text-white"
+              style={{ backgroundColor: '#64a518' }}
+            >
+              Pay Fees
+            </button>
+          </div>
 
+          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -89,6 +104,7 @@ const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden pb-4">
             <div className="flex flex-col space-y-2">
@@ -109,6 +125,16 @@ const Navbar = () => {
                   {item.name}
                 </a>
               ))}
+              {/* Pay Fees button in mobile menu */}
+              <div className="pt-2">
+                <button
+                  onClick={handlePayFees}
+                  className="px-5 py-2 rounded text-sm text-white w-full text-center"
+                  style={{ backgroundColor: '#64a518' }}
+                >
+                  Pay Fees
+                </button>
+              </div>
             </div>
           </div>
         )}

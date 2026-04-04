@@ -27,12 +27,11 @@ const BatchDetails = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'after12' | 'lst'>('all');
 
   const batches = activeTab === 'classroom' ? classroomBatches : onlineBatches;
-  const filtered =
-    activeTab === 'classroom'
-      ? classroomBatches.filter(b =>
-          activeFilter === 'all' ? true : b.category === activeFilter
-        )
-      : onlineBatches;
+  const filtered = activeTab === 'classroom'
+    ? (batches as typeof classroomBatches).filter(b =>
+        activeFilter === 'all' ? true : b.category === activeFilter
+      )
+    : batches;
 
   return (
     <section className="py-16 bg-gray-50">
@@ -126,7 +125,7 @@ const BatchDetails = () => {
                       </td>
                       <td className="px-5 py-4 text-right align-top">
                         <button className="bg-[#e85222] hover:bg-[#cf4118] text-white text-sm font-bold px-4 py-2 rounded-md transition-colors whitespace-nowrap"
-                          onClick={() => window.open('https://www.careerlauncher.com/cl-online/ProductDesc.jsp?prodeid=Mo0rciabGBI%3D&prodCat=AFTER-12&rt=microsite&rl=1424&beid=YCFP66Cs85w%3D&leid=UBv%20bw5GGfw%3D&cd=1', '_blank', 'noopener,noreferrer')}>
+                          onClick={() => window.open('https://www.careerlauncher.com', '_blank', 'noopener,noreferrer')}>
                           Enroll Now
                         </button>
                       </td>

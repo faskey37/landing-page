@@ -25,10 +25,7 @@ export default function Home() {
           <AboutSection />
         </section>
         
-        {/* Programs Section - Batch Details */}
-        <section id="about">
-          <BatchDetails />
-        </section>
+        
         
         {/* Why Us Section - Also Batch Details (as requested) */}
         <section id="why-us">
