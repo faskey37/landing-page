@@ -1,7 +1,7 @@
-// app/components/HeroSection.tsx
+// app/components/HeroSection.tsx - Updated with resend limit UI
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const HeroSection = () => {
   const [formData, setFormData] = useState({
@@ -10,14 +10,28 @@ const HeroSection = () => {
     mobile: '',
     program: ''
   });
+  const [step, setStep] = useState<'form' | 'otp'>('form');
+  const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
     type: null,
     message: ''
   });
+  const [timer, setTimer] = useState(0);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [maxAttemptsReached, setMaxAttemptsReached] = useState(false);
 
-  // REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL
-  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzHpbbcHlAm4b6tY0fEl3kRuvQLwpEu62TM8XuGdq-8khS-ofZ29VRTHHOAKYNDrFQG/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -26,41 +40,160 @@ const HeroSection = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.mobile || formData.mobile.length !== 10) {
+      setSubmitStatus({ 
+        type: 'error', 
+        message: 'Please enter a valid 10-digit mobile number' 
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus({ type: null, message: '' });
 
     try {
-      const response = await fetch(GOOGLE_SHEETS_URL, {
+      const response = await fetch('/api/send-otp', {
         method: 'POST',
-        mode: 'no-cors', // Important for Google Apps Script
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile })
       });
 
-      // Since mode is 'no-cors', we can't read response
-      // Assume success if no error
+      const data = await response.json();
+
+      if (data.success) {
+        setStep('otp');
+        setTimer(60);
+        setResendAttempts(1);
+        setMaxAttemptsReached(false);
+        setSubmitStatus({ type: 'success', message: 'OTP sent to your mobile number!' });
+        setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
+      } else {
+        setSubmitStatus({ type: 'error', message: data.message });
+      }
+    } catch (error) {
+      setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!otp || otp.length !== 6) {
+      setSubmitStatus({ type: 'error', message: 'Please enter a valid 6-digit OTP' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: '' });
+
+    try {
+      const verifyResponse = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile, otp })
+      });
+
+      const verifyData = await verifyResponse.json();
+
+      if (!verifyData.success) {
+        setSubmitStatus({ type: 'error', message: verifyData.message });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Save to Google Sheets
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          verified: true,
+          verified_at: new Date().toISOString(),
+          timestamp: new Date().toISOString()
+        }),
+      });
+
       setSubmitStatus({ 
         type: 'success', 
-        message: 'Thank you! We will contact you soon.' 
+        message: 'Thank you! Your information has been saved. We will contact you soon.' 
       });
-      setFormData({ name: '', email: '', mobile: '', program: '' });
+      
+      setTimeout(() => {
+        setFormData({ name: '', email: '', mobile: '', program: '' });
+        setOtp('');
+        setStep('form');
+        setSubmitStatus({ type: null, message: '' });
+        setResendAttempts(0);
+      }, 3000);
       
     } catch (error) {
-      console.error('Submission error:', error);
       setSubmitStatus({ 
         type: 'error', 
         message: 'Something went wrong. Please try again.' 
       });
     } finally {
       setIsSubmitting(false);
-      setTimeout(() => {
-        setSubmitStatus({ type: null, message: '' });
-      }, 5000);
     }
+  };
+
+  const handleResendOTP = async () => {
+    if (timer > 0) {
+      setSubmitStatus({ type: 'error', message: `Please wait ${timer} seconds before resending OTP` });
+      return;
+    }
+    
+    if (maxAttemptsReached || resendAttempts >= 3) {
+      setSubmitStatus({ type: 'error', message: 'Maximum resend limit reached (3 attempts). Please try again after 1 hour.' });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setTimer(30); // 30 seconds gap between resends
+        setResendAttempts(prev => prev + 1);
+        
+        if (data.remainingAttempts === 0) {
+          setMaxAttemptsReached(true);
+        }
+        
+        setSubmitStatus({ 
+          type: 'success', 
+          message: data.message || 'OTP resent successfully!' 
+        });
+        setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
+      } else {
+        setSubmitStatus({ type: 'error', message: data.message });
+        if (data.limitExceeded) {
+          setMaxAttemptsReached(true);
+        }
+      }
+    } catch (error) {
+      setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBackToForm = () => {
+    setStep('form');
+    setOtp('');
+    setSubmitStatus({ type: null, message: '' });
   };
 
   return (
@@ -76,7 +209,7 @@ const HeroSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           
-          {/* Left Column - Content (same as before) */}
+          {/* Left Column - Content */}
           <div className="space-y-8">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
               Career Launcher Pune Undri
@@ -117,7 +250,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right Column - Form */}
+          {/* Right Column - Form with OTP */}
           <div className="lg:pl-8">
             <div className="sticky top-24">
               <div className="form-box bg-white rounded-lg shadow-lg overflow-hidden">
@@ -127,87 +260,154 @@ const HeroSection = () => {
                   </h5>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="p-6 pt-2 space-y-5">
-                  {submitStatus.type === 'success' && (
-                    <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-3 rounded-lg text-sm">
-                      {submitStatus.message}
+                {submitStatus.type === 'success' && submitStatus.message.includes('Thank you') ? (
+                  <div className="p-6 text-center">
+                    <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-8 rounded-lg text-center">
+                      <svg className="w-16 h-16 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-lg font-semibold">{submitStatus.message}</p>
                     </div>
-                  )}
-                  
-                  {submitStatus.type === 'error' && (
-                    <div className="bg-red-50 border border-red-500 text-red-700 px-4 py-3 rounded-lg text-sm">
-                      {submitStatus.message}
-                    </div>
-                  )}
-                  
-                  <div>
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder="Enter Name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="form-input"
-                      required
-                    />
                   </div>
-                  
-                  <div>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Enter Email Address"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="form-input"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <input
-                      type="tel"
-                      name="mobile"
-                      placeholder="Enter Mobile Number"
-                      value={formData.mobile}
-                      onChange={handleChange}
-                      className="form-input"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <select
-                      name="program"
-                      value={formData.program}
-                      onChange={handleChange}
-                      className="form-input"
-                      required
-                    >
-                      <option value="">Select Program</option>
-                      <optgroup label="School Classes">
-                        <option value="CLASS-8">CLASS-8</option>
-                        <option value="CLASS-9">CLASS-9</option>
-                        <option value="CLASS-10">CLASS-10</option>
-                        <option value="CLASS-11">CLASS-11</option>
-                        <option value="CLASS-12">CLASS-12</option>
-                      </optgroup>
-                      <optgroup label="Tuitions & Entrance">
-                        <option value="TUITIONS">TUITIONS</option>
-                        <option value="BBA/IPM">BBA/IPM</option>
-                        <option value="LAW">LAW</option>
-                      </optgroup>
-                    </select>
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    className="submit-button"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
-                  </button>
-                </form>
+                ) : (
+                  <form onSubmit={step === 'form' ? handleSendOTP : handleVerifyOTP} className="p-6 pt-2 space-y-5">
+                    {submitStatus.type === 'error' && (
+                      <div className="bg-red-50 border border-red-500 text-red-700 px-4 py-3 rounded-lg text-sm">
+                        {submitStatus.message}
+                      </div>
+                    )}
+                    
+                    {submitStatus.type === 'success' && step === 'otp' && (
+                      <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-3 rounded-lg text-sm">
+                        {submitStatus.message}
+                      </div>
+                    )}
+                    
+                    {step === 'form' ? (
+                      <>
+                        <div>
+                          <input
+                            type="text"
+                            name="name"
+                            placeholder="Enter Name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="form-input"
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <input
+                            type="email"
+                            name="email"
+                            placeholder="Enter Email Address"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="form-input"
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <input
+                            type="tel"
+                            name="mobile"
+                            placeholder="Enter Mobile Number (10 digits)"
+                            value={formData.mobile}
+                            onChange={handleChange}
+                            className="form-input"
+                            maxLength={10}
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <select
+                            name="program"
+                            value={formData.program}
+                            onChange={handleChange}
+                            className="form-input"
+                            required
+                          >
+                            <option value="">Select Program</option>
+                            <optgroup label="School Classes">
+                              <option value="CLASS-8">CLASS-8</option>
+                              <option value="CLASS-9">CLASS-9</option>
+                              <option value="CLASS-10">CLASS-10</option>
+                              <option value="CLASS-11">CLASS-11</option>
+                              <option value="CLASS-12">CLASS-12</option>
+                            </optgroup>
+                            <optgroup label="Tuitions & Entrance">
+                              <option value="TUITIONS">TUITIONS</option>
+                              <option value="BBA/IPM">BBA/IPM</option>
+                              <option value="LAW">LAW</option>
+                            </optgroup>
+                          </select>
+                        </div>
+                        
+                        <button
+                          type="submit"
+                          className="submit-button"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? 'Sending OTP...' : 'Send OTP'}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-center mb-4">
+                          <p className="text-gray-700">OTP sent to <strong>{formData.mobile}</strong></p>
+                          <button 
+                            type="button"
+                            onClick={handleBackToForm}
+                            className="text-sm text-orange-500 hover:text-orange-600 mt-2"
+                          >
+                            ← Edit Number
+                          </button>
+                        </div>
+                        
+                        <div>
+                          <input
+                            type="text"
+                            name="otp"
+                            placeholder="Enter 6-digit OTP"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            className="form-input text-center text-xl tracking-widest"
+                            maxLength={6}
+                            required
+                          />
+                        </div>
+                        
+                        <div className="text-center">
+                          {timer > 0 ? (
+                            <p className="text-sm text-gray-500">Resend OTP in {timer} seconds</p>
+                          ) : maxAttemptsReached || resendAttempts >= 3 ? (
+                            <p className="text-sm text-red-500">Maximum resend limit reached. Please try again after 1 hour.</p>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleResendOTP}
+                              className="text-sm text-orange-500 hover:text-orange-600"
+                              disabled={isSubmitting}
+                            >
+                              Resend OTP ({3 - resendAttempts} attempts left)
+                            </button>
+                          )}
+                        </div>
+                        
+                        <button
+                          type="submit"
+                          className="submit-button"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? 'Verifying...' : 'Verify & Submit'}
+                        </button>
+                      </>
+                    )}
+                  </form>
+                )}
               </div>
             </div>
           </div>
