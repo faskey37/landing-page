@@ -28,10 +28,12 @@ export default function Home() {
         </section>
         
         <section id="why-us" className="w-full">
-          <GetinTouch />
+            <BatchDetails />
         </section>
         
-        
+        <section id="contact" className="w-full">
+          <GetinTouch />
+        </section>
       </main>
       
       <Footer />
