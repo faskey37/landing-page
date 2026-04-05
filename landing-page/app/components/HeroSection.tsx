@@ -10,6 +10,14 @@ const HeroSection = () => {
     mobile: '',
     program: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
+    type: null,
+    message: ''
+  });
+
+  // REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL
+  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzHpbbcHlAm4b6tY0fEl3kRuvQLwpEu62TM8XuGdq-8khS-ofZ29VRTHHOAKYNDrFQG/exec';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -18,10 +26,41 @@ const HeroSection = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Add your form submission logic here
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: '' });
+
+    try {
+      const response = await fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Important for Google Apps Script
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      // Since mode is 'no-cors', we can't read response
+      // Assume success if no error
+      setSubmitStatus({ 
+        type: 'success', 
+        message: 'Thank you! We will contact you soon.' 
+      });
+      setFormData({ name: '', email: '', mobile: '', program: '' });
+      
+    } catch (error) {
+      console.error('Submission error:', error);
+      setSubmitStatus({ 
+        type: 'error', 
+        message: 'Something went wrong. Please try again.' 
+      });
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => {
+        setSubmitStatus({ type: null, message: '' });
+      }, 5000);
+    }
   };
 
   return (
@@ -35,22 +74,18 @@ const HeroSection = () => {
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           
-          {/* Left Column - Content */}
+          {/* Left Column - Content (same as before) */}
           <div className="space-y-8">
-            {/* Title */}
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
               Career Launcher Pune Undri
             </h1>
             
-            {/* Description */}
             <p className="text-gray-700 leading-relaxed">
               Career Launcher Pune provides expert coaching classes for CAT, CLAT, IPMAT, and other entrance exams like XAT, SNAP, NMAT, CET, AILET, BBA, SET, and MHECET.
             </p>
 
-            {/* Why Choose Section */}
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                 Why Choose Career Launcher for Tuitions, CAT, CLAT & IPMAT Coaching?
@@ -60,7 +95,6 @@ const HeroSection = () => {
               </p>
             </div>
 
-            {/* Truth Section */}
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                 Can Only Toppers Crack Competitive Exams? The Truth About CAT, CLAT & IPMAT Success
@@ -73,7 +107,6 @@ const HeroSection = () => {
               </p>
             </div>
 
-            {/* Expert Coaching CTA */}
             <div className="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-lg">
               <h3 className="text-xl font-bold text-gray-900 mb-2">
                 Get Expert Coaching for CAT, CLAT & IPMAT
@@ -84,7 +117,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right Column - Sticky Form */}
+          {/* Right Column - Form */}
           <div className="lg:pl-8">
             <div className="sticky top-24">
               <div className="form-box bg-white rounded-lg shadow-lg overflow-hidden">
@@ -95,6 +128,18 @@ const HeroSection = () => {
                 </div>
                 
                 <form onSubmit={handleSubmit} className="p-6 pt-2 space-y-5">
+                  {submitStatus.type === 'success' && (
+                    <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-3 rounded-lg text-sm">
+                      {submitStatus.message}
+                    </div>
+                  )}
+                  
+                  {submitStatus.type === 'error' && (
+                    <div className="bg-red-50 border border-red-500 text-red-700 px-4 py-3 rounded-lg text-sm">
+                      {submitStatus.message}
+                    </div>
+                  )}
+                  
                   <div>
                     <input
                       type="text"
@@ -158,8 +203,9 @@ const HeroSection = () => {
                   <button
                     type="submit"
                     className="submit-button"
+                    disabled={isSubmitting}
                   >
-                    Submit
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </button>
                 </form>
               </div>
@@ -211,12 +257,17 @@ const HeroSection = () => {
           font-size: 16px;
         }
         
-        .submit-button:hover {
+        .submit-button:hover:not(:disabled) {
           background-color: #d14417;
           transform: translateY(-1px);
         }
         
-        .submit-button:active {
+        .submit-button:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        
+        .submit-button:active:not(:disabled) {
           transform: translateY(0);
         }
       `}</style>
