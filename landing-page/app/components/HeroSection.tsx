@@ -202,10 +202,12 @@ const HeroSection = () => {
         backgroundImage: `url('https://clsite-file1.s3.amazonaws.com/106960_micrositebanner_bg.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        backgroundColor:'#FFF0EB',
       }}
     >
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
+      {/* Added extra padding-top on mobile to prevent heading from hiding behind header */}
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 lg:pt-8 pb-8 md:py-12 lg:py-16">
         {/* Mobile: Single column, Desktop: Two columns */}
         <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
           
@@ -252,33 +254,31 @@ const HeroSection = () => {
 
           {/* Right Column - Form */}
           <div className="w-full lg:pl-8">
-            <div className="sticky top-24">
-              <div className="form-box bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
-                  <h5 className="form-title text-xl sm:text-2xl">
-                    Get FREE Counseling Session
-                  </h5>
-                </div>
+            <div className="sticky top-24 flex justify-center lg:justify-end">
+              <div className="form-box" style={{ width: '550px', maxWidth: '100%' }}>
+                <h5 className="form-title">
+                  Get FREE Counseling Session
+                </h5>
                 
                 {submitStatus.type === 'success' && submitStatus.message.includes('Thank you') ? (
-                  <div className="p-4 sm:p-6 text-center">
-                    <div className="bg-green-50 border border-green-500 text-green-700 px-3 sm:px-4 py-6 sm:py-8 rounded-lg text-center">
-                      <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="text-center mt-4">
+                    <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-8 rounded-lg text-center">
+                      <svg className="w-12 h-12 mx-auto mb-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <p className="text-sm sm:text-lg font-semibold">{submitStatus.message}</p>
+                      <p className="text-sm font-semibold">{submitStatus.message}</p>
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={step === 'form' ? handleSendOTP : handleVerifyOTP} className="p-4 sm:p-6 pt-2 space-y-4 sm:space-y-5">
+                  <form onSubmit={step === 'form' ? handleSendOTP : handleVerifyOTP} className="mt-4 space-y-4">
                     {submitStatus.type === 'error' && (
-                      <div className="bg-red-50 border border-red-500 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
+                      <div className="bg-red-50 border border-red-500 text-red-700 px-3 py-2 rounded-lg text-xs">
                         {submitStatus.message}
                       </div>
                     )}
                     
                     {submitStatus.type === 'success' && step === 'otp' && (
-                      <div className="bg-green-50 border border-green-500 text-green-700 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
+                      <div className="bg-green-50 border border-green-500 text-green-700 px-3 py-2 rounded-lg text-xs">
                         {submitStatus.message}
                       </div>
                     )}
@@ -292,7 +292,7 @@ const HeroSection = () => {
                             placeholder="Enter Name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
+                            className="form-input w-full px-3 py-2.5 text-sm"
                             required
                           />
                         </div>
@@ -304,7 +304,7 @@ const HeroSection = () => {
                             placeholder="Enter Email Address"
                             value={formData.email}
                             onChange={handleChange}
-                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
+                            className="form-input w-full px-3 py-2.5 text-sm"
                             required
                           />
                         </div>
@@ -316,7 +316,7 @@ const HeroSection = () => {
                             placeholder="Enter Mobile Number (10 digits)"
                             value={formData.mobile}
                             onChange={handleChange}
-                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
+                            className="form-input w-full px-3 py-2.5 text-sm"
                             maxLength={10}
                             required
                           />
@@ -327,7 +327,7 @@ const HeroSection = () => {
                             name="program"
                             value={formData.program}
                             onChange={handleChange}
-                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
+                            className="form-input w-full px-3 py-2.5 text-sm"
                             required
                           >
                             <option value="">Select Program</option>
@@ -348,7 +348,7 @@ const HeroSection = () => {
                         
                         <button
                           type="submit"
-                          className="submit-button w-full py-2 sm:py-3 text-sm sm:text-base"
+                          className="submit-button w-full py-2.5 text-sm"
                           disabled={isSubmitting}
                         >
                           {isSubmitting ? 'Sending OTP...' : 'Send OTP'}
@@ -356,12 +356,12 @@ const HeroSection = () => {
                       </>
                     ) : (
                       <>
-                        <div className="text-center mb-3 sm:mb-4">
-                          <p className="text-sm sm:text-base text-gray-700">OTP sent to <strong>{formData.mobile}</strong></p>
+                        <div className="text-center mb-2">
+                          <p className="text-sm text-gray-700">OTP sent to <strong>{formData.mobile}</strong></p>
                           <button 
                             type="button"
                             onClick={handleBackToForm}
-                            className="text-xs sm:text-sm text-orange-500 hover:text-orange-600 mt-2"
+                            className="text-xs text-orange-500 hover:text-orange-600 mt-1"
                           >
                             ← Edit Number
                           </button>
@@ -374,7 +374,7 @@ const HeroSection = () => {
                             placeholder="Enter 6-digit OTP"
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
-                            className="form-input w-full text-center text-lg sm:text-xl tracking-widest px-3 sm:px-4 py-2 sm:py-3"
+                            className="form-input w-full text-center text-lg tracking-widest px-3 py-2.5"
                             maxLength={6}
                             required
                           />
@@ -382,14 +382,14 @@ const HeroSection = () => {
                         
                         <div className="text-center">
                           {timer > 0 ? (
-                            <p className="text-xs sm:text-sm text-gray-500">Resend OTP in {timer} seconds</p>
+                            <p className="text-xs text-gray-500">Resend OTP in {timer} seconds</p>
                           ) : maxAttemptsReached || resendAttempts >= 3 ? (
-                            <p className="text-xs sm:text-sm text-red-500">Maximum resend limit reached. Please try again after 1 hour.</p>
+                            <p className="text-xs text-red-500">Maximum resend limit reached. Please try again after 1 hour.</p>
                           ) : (
                             <button
                               type="button"
                               onClick={handleResendOTP}
-                              className="text-xs sm:text-sm text-orange-500 hover:text-orange-600"
+                              className="text-xs text-orange-500 hover:text-orange-600"
                               disabled={isSubmitting}
                             >
                               Resend OTP ({3 - resendAttempts} attempts left)
@@ -399,7 +399,7 @@ const HeroSection = () => {
                         
                         <button
                           type="submit"
-                          className="submit-button w-full py-2 sm:py-3 text-sm sm:text-base"
+                          className="submit-button w-full py-2.5 text-sm"
                           disabled={isSubmitting}
                         >
                           {isSubmitting ? 'Verifying...' : 'Verify & Submit'}
@@ -415,18 +415,25 @@ const HeroSection = () => {
       </div>
 
       <style jsx>{`
+        .form-box {
+          background-color: #ffffff;
+          padding: 28px 25px;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
         .form-box h5 {
           font-size: 20px;
-          font-weight: 600;
-          line-height: 28px;
+          font-weight: 700;
+          line-height: 1.3;
           text-align: left;
           color: #000000;
+          margin: 0;
         }
         
         @media (min-width: 640px) {
           .form-box h5 {
-            font-size: 24px;
-            line-height: 32px;
+            font-size: 22px;
           }
         }
         

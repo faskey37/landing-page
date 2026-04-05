@@ -9,7 +9,7 @@ const Navbar = () => {
   const navItems = [
     { name: 'Home', hash: 'home' },
     { name: 'About Us', hash: 'about' },
-    { name: 'Programs', hash: 'programs' },
+    { name: 'Programs', hash: 'about' },
     { name: 'Why Us', hash: 'why-us' },
     { name: 'Contact us', hash: 'contact' },
   ];
@@ -81,10 +81,11 @@ const Navbar = () => {
           <div>
             <button
               onClick={handlePayFees}
-              className="px-5 py-1.5 rounded text-sm font-medium transition-colors text-white"
+              className="px-5 py-1.5 rounded text-sm font-medium transition-colors text-white flex items-center gap-1"
               style={{ backgroundColor: '#64a518' }}
             >
-              Pay Fees
+              <span style={{ fontSize: '14px' }}>₹</span>
+              <span>Pay Fees</span>
             </button>
           </div>
         </div>

@@ -28,7 +28,7 @@ const Header = () => {
   }, [lastScrollY]);
 
   const handleEnrollClick = () => {
-    window.open('https://www.careerlauncher.com/enroll-now', '_blank', 'noopener,noreferrer');
+    window.open('#why-us', '_blank', 'noopener,noreferrer');
   };
 
   const handleWhatsAppClick = () => {
