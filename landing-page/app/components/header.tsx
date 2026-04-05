@@ -291,14 +291,32 @@ const WhatsAppIconSmall = () => (
 );
 
 const ShoppingCartIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#e85222' }}>
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6.5M17 13l1.5 6.5M9 21h6M12 21v-4" />
+  <svg className="w-8 h-8" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#e85222' }}>
+    <g stroke="#e85222" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <path d="M12 16 L20 16 L26 46 L62 46 L68 24 L26 24"/>
+      <line x1="32" y1="24" x2="34" y2="46"/>
+      <line x1="42" y1="24" x2="42" y2="46"/>
+      <line x1="52" y1="24" x2="50" y2="46"/>
+      <line x1="26" y1="31" x2="66" y2="31"/>
+      <line x1="27" y1="38" x2="64" y2="38"/>
+      <circle cx="32" cy="56" r="5"/>
+      <circle cx="56" cy="56" r="5"/>
+    </g>
   </svg>
 );
 
 const ShoppingCartIconWhite = () => (
-  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#ffffff' }}>
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6.5M17 13l1.5 6.5M9 21h6M12 21v-4" />
+  <svg className="w-4.5 h-4.5" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="#ffffff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <path d="M12 16 L20 16 L26 46 L62 46 L68 24 L26 24"/>
+      <line x1="32" y1="24" x2="34" y2="46"/>
+      <line x1="42" y1="24" x2="42" y2="46"/>
+      <line x1="52" y1="24" x2="50" y2="46"/>
+      <line x1="26" y1="31" x2="66" y2="31"/>
+      <line x1="27" y1="38" x2="64" y2="38"/>
+      <circle cx="32" cy="56" r="5"/>
+      <circle cx="56" cy="56" r="5"/>
+    </g>
   </svg>
 );
 
