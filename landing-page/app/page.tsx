@@ -1,4 +1,4 @@
-// app/page.tsx - Correct section mapping
+// app/page.tsx
 import Navbar from "./components/navbar";
 import Header from "./components/header";
 import HeroSection from "./components/HeroSection";
@@ -9,34 +9,30 @@ import Footer from "./components/Footer";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex flex-col min-h-screen bg-zinc-50 font-sans overflow-x-hidden w-full">
       <Header />
+      <Navbar />
       
-      <div>
-        <Navbar />
-        
-        {/* Home Section */}
-        <section id="home">
+      {/* Content - padding top for header (60px) */}
+      <main className="flex-1 w-full overflow-x-hidden pt-[60px] md:pt-[116px]">
+        <section id="home" className="w-full">
           <HeroSection />
         </section>
         
-        {/* About Section */}
-        <section id="about">
+        <section id="about" className="w-full">
           <AboutSection />
         </section>
         
-        
-        
-        {/* Why Us Section - Also Batch Details (as requested) */}
-        <section id="why-us">
+        <section id="programs" className="w-full">
           <BatchDetails />
         </section>
         
-        {/* Contact Section - Get in Touch */}
-        <section id="contact">
+        <section id="why-us" className="w-full">
           <GetinTouch />
         </section>
-      </div>
+        
+        
+      </main>
       
       <Footer />
     </div>

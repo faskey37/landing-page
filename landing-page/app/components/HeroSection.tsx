@@ -1,4 +1,4 @@
-// app/components/HeroSection.tsx - Updated with resend limit UI
+// app/components/HeroSection.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -106,7 +106,6 @@ const HeroSection = () => {
         return;
       }
 
-      // Save to Google Sheets
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -165,7 +164,7 @@ const HeroSection = () => {
       const data = await response.json();
 
       if (data.success) {
-        setTimer(30); // 30 seconds gap between resends
+        setTimer(30);
         setResendAttempts(prev => prev + 1);
         
         if (data.remainingAttempts === 0) {
@@ -198,7 +197,7 @@ const HeroSection = () => {
 
   return (
     <div 
-      className="bg-gray-50"
+      className="w-full overflow-x-hidden"
       style={{
         backgroundImage: `url('https://clsite-file1.s3.amazonaws.com/106960_micrositebanner_bg.png')`,
         backgroundSize: 'cover',
@@ -206,79 +205,80 @@ const HeroSection = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
+        {/* Mobile: Single column, Desktop: Two columns */}
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
           
           {/* Left Column - Content */}
-          <div className="space-y-8">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+          <div className="w-full space-y-6 md:space-y-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
               Career Launcher Pune Undri
             </h1>
             
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
               Career Launcher Pune provides expert coaching classes for CAT, CLAT, IPMAT, and other entrance exams like XAT, SNAP, NMAT, CET, AILET, BBA, SET, and MHECET.
             </p>
 
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
                 Why Choose Career Launcher for Tuitions, CAT, CLAT & IPMAT Coaching?
               </h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 At Career Launcher Pune, our coaching classes focus on building strong fundamentals, improving aptitude, and enhancing test-taking strategies. Our experienced mentors provide personalized attention, ensuring students get their doubts cleared instantly and develop confidence in solving complex problems.
               </p>
             </div>
 
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
                 Can Only Toppers Crack Competitive Exams? The Truth About CAT, CLAT & IPMAT Success
               </h2>
-              <p className="text-gray-700 leading-relaxed mb-4">
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-3 md:mb-4">
                 Many students believe that only toppers can crack competitive exams like CAT, CLAT, and IPMAT, but the truth is that success depends on dedication, smart learning strategies, and consistent practice. Just like in sports, where training and strategy determine performance, <strong className="font-semibold text-gray-900">cracking competitive exams requires effective time management, problem-solving skills, and the right preparation techniques</strong>.
               </p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                 If you want to <strong className="font-semibold text-gray-900">crack CAT, CLAT, or IPMAT</strong>, focus on <strong className="font-semibold text-gray-900">concept clarity, regular mock tests, and strategic study plans</strong> rather than just rote learning. With the right guidance and a disciplined approach, <strong className="font-semibold text-gray-900">any student can achieve top scores</strong> and secure admission to prestigious institutions.
               </p>
             </div>
 
-            <div className="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-lg">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <div className="bg-orange-50 border-l-4 border-orange-500 p-4 md:p-6 rounded-r-lg">
+              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
                 Get Expert Coaching for CAT, CLAT & IPMAT
               </h3>
-              <p className="text-gray-700">
+              <p className="text-sm md:text-base text-gray-700">
                 Looking for expert coaching? Get personalized study plans, mock tests, and expert mentorship to boost your preparation!
               </p>
             </div>
           </div>
 
-          {/* Right Column - Form with OTP */}
-          <div className="lg:pl-8">
+          {/* Right Column - Form */}
+          <div className="w-full lg:pl-8">
             <div className="sticky top-24">
               <div className="form-box bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="px-6 pt-6 pb-2">
-                  <h5 className="form-title">
+                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+                  <h5 className="form-title text-xl sm:text-2xl">
                     Get FREE Counseling Session
                   </h5>
                 </div>
                 
                 {submitStatus.type === 'success' && submitStatus.message.includes('Thank you') ? (
-                  <div className="p-6 text-center">
-                    <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-8 rounded-lg text-center">
-                      <svg className="w-16 h-16 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="p-4 sm:p-6 text-center">
+                    <div className="bg-green-50 border border-green-500 text-green-700 px-3 sm:px-4 py-6 sm:py-8 rounded-lg text-center">
+                      <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <p className="text-lg font-semibold">{submitStatus.message}</p>
+                      <p className="text-sm sm:text-lg font-semibold">{submitStatus.message}</p>
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={step === 'form' ? handleSendOTP : handleVerifyOTP} className="p-6 pt-2 space-y-5">
+                  <form onSubmit={step === 'form' ? handleSendOTP : handleVerifyOTP} className="p-4 sm:p-6 pt-2 space-y-4 sm:space-y-5">
                     {submitStatus.type === 'error' && (
-                      <div className="bg-red-50 border border-red-500 text-red-700 px-4 py-3 rounded-lg text-sm">
+                      <div className="bg-red-50 border border-red-500 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
                         {submitStatus.message}
                       </div>
                     )}
                     
                     {submitStatus.type === 'success' && step === 'otp' && (
-                      <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-3 rounded-lg text-sm">
+                      <div className="bg-green-50 border border-green-500 text-green-700 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm">
                         {submitStatus.message}
                       </div>
                     )}
@@ -292,7 +292,7 @@ const HeroSection = () => {
                             placeholder="Enter Name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="form-input"
+                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
                             required
                           />
                         </div>
@@ -304,7 +304,7 @@ const HeroSection = () => {
                             placeholder="Enter Email Address"
                             value={formData.email}
                             onChange={handleChange}
-                            className="form-input"
+                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
                             required
                           />
                         </div>
@@ -316,7 +316,7 @@ const HeroSection = () => {
                             placeholder="Enter Mobile Number (10 digits)"
                             value={formData.mobile}
                             onChange={handleChange}
-                            className="form-input"
+                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
                             maxLength={10}
                             required
                           />
@@ -327,7 +327,7 @@ const HeroSection = () => {
                             name="program"
                             value={formData.program}
                             onChange={handleChange}
-                            className="form-input"
+                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base"
                             required
                           >
                             <option value="">Select Program</option>
@@ -348,7 +348,7 @@ const HeroSection = () => {
                         
                         <button
                           type="submit"
-                          className="submit-button"
+                          className="submit-button w-full py-2 sm:py-3 text-sm sm:text-base"
                           disabled={isSubmitting}
                         >
                           {isSubmitting ? 'Sending OTP...' : 'Send OTP'}
@@ -356,12 +356,12 @@ const HeroSection = () => {
                       </>
                     ) : (
                       <>
-                        <div className="text-center mb-4">
-                          <p className="text-gray-700">OTP sent to <strong>{formData.mobile}</strong></p>
+                        <div className="text-center mb-3 sm:mb-4">
+                          <p className="text-sm sm:text-base text-gray-700">OTP sent to <strong>{formData.mobile}</strong></p>
                           <button 
                             type="button"
                             onClick={handleBackToForm}
-                            className="text-sm text-orange-500 hover:text-orange-600 mt-2"
+                            className="text-xs sm:text-sm text-orange-500 hover:text-orange-600 mt-2"
                           >
                             ← Edit Number
                           </button>
@@ -374,7 +374,7 @@ const HeroSection = () => {
                             placeholder="Enter 6-digit OTP"
                             value={otp}
                             onChange={(e) => setOtp(e.target.value)}
-                            className="form-input text-center text-xl tracking-widest"
+                            className="form-input w-full text-center text-lg sm:text-xl tracking-widest px-3 sm:px-4 py-2 sm:py-3"
                             maxLength={6}
                             required
                           />
@@ -382,14 +382,14 @@ const HeroSection = () => {
                         
                         <div className="text-center">
                           {timer > 0 ? (
-                            <p className="text-sm text-gray-500">Resend OTP in {timer} seconds</p>
+                            <p className="text-xs sm:text-sm text-gray-500">Resend OTP in {timer} seconds</p>
                           ) : maxAttemptsReached || resendAttempts >= 3 ? (
-                            <p className="text-sm text-red-500">Maximum resend limit reached. Please try again after 1 hour.</p>
+                            <p className="text-xs sm:text-sm text-red-500">Maximum resend limit reached. Please try again after 1 hour.</p>
                           ) : (
                             <button
                               type="button"
                               onClick={handleResendOTP}
-                              className="text-sm text-orange-500 hover:text-orange-600"
+                              className="text-xs sm:text-sm text-orange-500 hover:text-orange-600"
                               disabled={isSubmitting}
                             >
                               Resend OTP ({3 - resendAttempts} attempts left)
@@ -399,7 +399,7 @@ const HeroSection = () => {
                         
                         <button
                           type="submit"
-                          className="submit-button"
+                          className="submit-button w-full py-2 sm:py-3 text-sm sm:text-base"
                           disabled={isSubmitting}
                         >
                           {isSubmitting ? 'Verifying...' : 'Verify & Submit'}
@@ -416,19 +416,24 @@ const HeroSection = () => {
 
       <style jsx>{`
         .form-box h5 {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: 600;
-          line-height: 32px;
+          line-height: 28px;
           text-align: left;
-          color: var(--color-secondary, #000000);
+          color: #000000;
+        }
+        
+        @media (min-width: 640px) {
+          .form-box h5 {
+            font-size: 24px;
+            line-height: 32px;
+          }
         }
         
         .form-input {
           width: 100%;
-          padding: 12px 16px;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
-          font-size: 14px;
           color: #374151;
           transition: all 0.3s ease;
           background-color: #ffffff;
@@ -436,7 +441,7 @@ const HeroSection = () => {
         
         .form-input:focus {
           outline: none;
-          border-color: var(--color-secondary, #e85222);
+          border-color: #e85222;
           box-shadow: 0 0 0 3px rgba(232, 82, 34, 0.1);
         }
         
@@ -446,15 +451,13 @@ const HeroSection = () => {
         
         .submit-button {
           width: 100%;
-          background-color: var(--color-secondary, #e85222);
+          background-color: #e85222;
           color: white;
           font-weight: 600;
-          padding: 12px 16px;
           border-radius: 8px;
           border: none;
           cursor: pointer;
           transition: all 0.3s ease;
-          font-size: 16px;
         }
         
         .submit-button:hover:not(:disabled) {
