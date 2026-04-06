@@ -1,61 +1,102 @@
 // app/api/verify-otp/route.ts
 import { NextResponse } from 'next/server';
-import { securityService } from '@/app/lib/security-service';
+import { db } from '../../lib/firebase-admin';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
-  const { mobile, otp } = await request.json();
-  
-  // Get client IP
-  const ip = request.headers.get('x-forwarded-for') || 
-             request.headers.get('x-real-ip') || 
-             'unknown';
-  
-  // Validate inputs
-  const mobileRegex = /^[6-9]\d{9}$/;
-  if (!mobileRegex.test(mobile)) {
-    securityService.reportSuspicious(mobile, ip, 'Invalid mobile for OTP verification');
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Invalid mobile number.' 
-    });
-  }
-  
-  if (!otp || !/^\d{6}$/.test(otp)) {
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Please enter a valid 6-digit OTP.' 
-    });
-  }
-  
-  // Check if IP is blocked
-  if (securityService.isIPBlocked(ip)) {
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Too many failed attempts. Please try again later.' 
-    }, { status: 429 });
-  }
-  
-  // Verify OTP
-  const verification = securityService.verifyOTP(mobile, otp, ip);
-  
-  if (!verification.success) {
-    // Report suspicious activity after multiple failures
-    const record = securityService['otpStore'].get(mobile);
-    if (record && record.attempts >= 2) {
-      securityService.reportSuspicious(mobile, ip, `Multiple OTP verification failures (${record.attempts} attempts)`);
+  try {
+    const { email, otp } = await request.json();
+    
+    console.log("🔍 Verifying OTP for:", email);
+    
+    // Get OTP record from Firebase
+    const otpDoc = await db.collection('otps').doc(email).get();
+    
+    if (!otpDoc.exists) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "No OTP request found. Please request a new OTP." 
+      });
     }
     
+    const otpData = otpDoc.data();
+    
+    if (!otpData) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "OTP data is corrupted. Please request a new OTP." 
+      });
+    }
+    
+    // Check if expired
+    if (new Date() > otpData.expiresAt.toDate()) {
+      await db.collection('otps').doc(email).delete();
+      return NextResponse.json({ 
+        success: false, 
+        message: "OTP has expired. Please request a new OTP." 
+      });
+    }
+    
+    // Check attempts (max 3)
+    if (otpData.attempts >= 3) {
+      await db.collection('otps').doc(email).delete();
+      return NextResponse.json({ 
+        success: false, 
+        message: "Too many failed attempts. Please request a new OTP." 
+      });
+    }
+    
+    // Verify OTP (compare plain text with hashed)
+    const isValid = await bcrypt.compare(otp, otpData.otpHash);
+    
+    if (!isValid) {
+      // Increment failed attempts
+      await db.collection('otps').doc(email).update({
+        attempts: otpData.attempts + 1
+      });
+      
+      const remainingAttempts = 2 - otpData.attempts;
+      return NextResponse.json({ 
+        success: false, 
+        message: `Invalid OTP. ${remainingAttempts} attempt(s) remaining.` 
+      });
+    }
+    
+    // OTP verified - save to Google Sheets
+    const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL;
+    
+    if (GOOGLE_SCRIPT_URL) {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: otpData.name,
+          email: otpData.email,
+          mobile: otpData.mobile,
+          program: otpData.program,
+          verified: true,
+          verified_at: new Date().toISOString(),
+          timestamp: new Date().toISOString()
+        }),
+      });
+    }
+    
+    // Delete used OTP from Firebase
+    await db.collection('otps').doc(email).delete();
+    
+    console.log("✅ OTP verified successfully for:", email);
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: "OTP verified successfully! Your counseling session request has been saved." 
+    });
+    
+  } catch (error) {
+    console.error("❌ Verification error:", error);
     return NextResponse.json({ 
       success: false, 
-      message: verification.message 
+      message: "Verification failed. Please try again." 
     });
   }
-  
-  // Clear rate limits on successful verification
-  // This prevents the same mobile from being blocked after successful verification
-  
-  return NextResponse.json({ 
-    success: true, 
-    message: 'OTP verified successfully' 
-  });
 }
