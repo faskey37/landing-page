@@ -7,6 +7,8 @@ import BatchDetails from "./components/BatchDetails";
 import GetinTouch from "./components/GetInTouch";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import VideoHeroSection from "./components/VideoHeroSection";
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 font-sans overflow-x-hidden w-full">
@@ -15,6 +17,7 @@ export default function Home() {
       
       {/* Content - padding top for header (108px) */}
       <main className="flex-1 w-full overflow-x-hidden">
+        <VideoHeroSection />
         <section id="home" className="w-full">
           <HeroSection />
         </section>

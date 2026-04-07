@@ -197,15 +197,17 @@ const HeroSection = () => {
 
   return (
     <div 
-      className="w-full overflow-x-hidden"
-      style={{
-        backgroundImage: `url('https://clsite-file1.s3.amazonaws.com/106960_micrositebanner_bg.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundColor:'#FFF0EB',
-      }}
-    >
+  className="w-full overflow-x-hidden relative -mt-24 z-30"
+  style={{
+    backgroundImage: `url('https://clsite-file1.s3.amazonaws.com/106960_micrositebanner_bg.png')`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundColor:'#FFF0EB',
+    borderTopLeftRadius: '24px',
+    borderTopRightRadius: '24px',
+  }}
+>
       {/* Added extra padding-top on mobile to prevent heading from hiding behind header */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 lg:pt-8 pb-8 md:py-12 lg:py-16">
         {/* Mobile: Single column, Desktop: Two columns */}
