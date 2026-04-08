@@ -1,140 +1,175 @@
-// app/components/AboutSection.tsx
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const AboutSection = () => {
   const programs = [
     {
       title: "CLASS-8",
-      description: "CLASS 8, Make your preparation convenient and complete",
-      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-8&rt=microsite&rl=1424"
+      description: "Build strong academic foundations and develop early problem-solving skills.",
+      tag: "Ideal for: Class 8 Students",
+      link: "#"
     },
     {
       title: "CLASS-9",
-      description: "CLASS 9, Special programs to Fasttrack student's journey towards success",
-      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-9&rt=microsite&rl=1424"
+      description: "Structured preparation programs to strengthen concepts and improve academic performance.",
+      tag: "Ideal for: Class 9 Students",
+      link: "#"
     },
     {
       title: "CLASS-10",
-      description: "CLASS 10, Special programs to Fasttrack student's journey towards success",
-      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-10&rt=microsite&rl=1424"
+      description: "Focused preparation to excel in board exams while building competitive exam readiness.",
+      tag: "Ideal for: Class 10 Students",
+      link: "#"
     },
     {
       title: "CLASS-11",
-      description: "CLASS 11, Special programs to Fasttrack student's journey towards success",
-      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-11&rt=microsite&rl=1424"
+      description: "Begin structured preparation for competitive exams with concept clarity and strategy.",
+      tag: "Ideal for: Class 11 Students",
+      link: "#"
     },
     {
       title: "CLASS-12",
-      description: "CLASS 12, Special programs to Fasttrack student's journey towards success",
-      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-12&rt=microsite&rl=1424"
-    },
-    {
-      title: "TUITIONS",
-      description: "Over 50+ programs to make your preparation convenient and complete",
-      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=TUITIONS&rt=microsite&rl=1424"
+      description: "Comprehensive programs for board exams along with entrance preparation support.",
+      tag: "Ideal for: Class 12 Students",
+      link: "#"
     },
     {
       title: "BBA/IPM",
-      description: "IPM/BBA Coaching Programs, We have varieties of programs to make your preparation convenient and complete.",
-      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=BBA/IPM&rt=microsite&rl=1424"
+      description: "Specialized coaching programs for IPM & BBA entrance exams.",
+      tag: "Ideal for: After 12th Students",
+      link: "#"
     },
     {
       title: "LAW",
-      description: "Law Coaching Programs, Leaders in law entrance exams coaching with 6/10 Top ranks in CLAT25 | 5/10 Top ranks in AILET25. Enroll with us and ace all law entrance exams!",
-      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=LAW&rt=microsite&rl=1424"
+      description: "Expert coaching for CLAT & AILET with proven results.",
+      tag: "Ideal for: Law Aspirants",
+      link: "#"
     }
   ];
 
-  const handleReadMore = (url: string) => {
+  const handleClick = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  // 🔥 Animation configs
+  const container = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: 0.08,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0 },
+  };
+
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gradient-to-b from-gray-50 to-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* About the Center Section - Left Aligned */}
-        <div className="mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-black mb-4 text-left">
-            About the Center: Pune - Undri
-          </h2>
-          <p className="text-lg text-gray-700 max-w-4xl leading-relaxed text-left">
-            CL Pune – Undri Center provides extensive training programs for students. Every program is designed in such a way that it nurtures students from scratch and prepares them systematically to pursue their dreams.
-          </p>
-        </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-300 my-12"></div>
+        {/* 🔥 SECTION FADE */}
+        <motion.section
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6, ease: "easeOut" }}
+  viewport={{ once: true, margin: "-100px" }}
+  className="py-16 bg-gradient-to-b from-gray-50 to-gray-200"
+>
 
-        {/* Programs Offered Section - Centered */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">
-            Programs Offered at Pune – Undri
-          </h2>
-          <p className="text-lg text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            We provide extensive training programs for students. Every program is designed in such a way that it nurtures students from scratch and prepares them systematically to pursue their dreams. Career Launcher Pune – Undri offers the following training programs.
-          </p>
-        </div>
+          {/* ABOUT */}
+          <div className="mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">
+              About Career Launcher Pune – Undri
+            </h2>
+            <p className="text-lg text-gray-700 max-w-4xl leading-relaxed">
+              Career Launcher Pune – Undri offers structured coaching programs for CAT, CLAT, IPMAT, and school academics.
+              Our approach focuses on building strong fundamentals, improving problem-solving ability, and guiding students
+              through a disciplined and result-oriented preparation journey.
+            </p>
+          </div>
 
-        {/* Programs Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-          {programs.map((program, index) => (
-            <div 
-              key={index}
-              className="bg-white border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow duration-300"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="text-xl font-bold text-black">
+          {/* TRUST */}
+          <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-10">
+            <span>⭐ Trusted by 10,000+ Students</span>
+            <span>🏆 Proven Results</span>
+            <span>📍 Pune (Undri Center)</span>
+          </div>
+
+          {/* TITLE */}
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">
+              Programs Offered
+            </h2>
+            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+              Explore programs designed for different academic stages and competitive exam goals.
+            </p>
+          </div>
+
+          {/* 🔥 GRID WITH STAGGER */}
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-10"
+          >
+            {programs.map((program, index) => (
+              <motion.div
+                key={index}
+                variants={item}
+                className="
+                  bg-white rounded-2xl p-6 
+                  border border-gray-100
+                  shadow-[0_10px_30px_rgba(0,0,0,0.08)]
+                  hover:shadow-[0_20px_60px_rgba(0,0,0,0.18)]
+                  hover:-translate-y-2 
+                  transition-transform duration-300 ease-out
+                "
+                style={{
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)"
+                }}
+              >
+                {/* Accent */}
+                <div className="w-10 h-1 bg-orange-500 rounded-full mb-4"></div>
+
+                <h3 className="text-xl font-bold text-black mb-2">
                   {program.title}
                 </h3>
-                {/* Black and white icon */}
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-              <p className="text-gray-700 mb-4 leading-relaxed">
-                {program.description}
-              </p>
-              <button 
-                onClick={() => handleReadMore(program.link)}
-                className="text-gray-900 font-semibold hover:text-gray-600 transition-colors flex items-center gap-2 group"
-              >
-                Read More 
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .grid > div {
-          animation: fadeInUp 0.5s ease-out forwards;
-          opacity: 0;
-        }
-        
-        .grid > div:nth-child(1) { animation-delay: 0.1s; }
-        .grid > div:nth-child(2) { animation-delay: 0.2s; }
-        .grid > div:nth-child(3) { animation-delay: 0.3s; }
-        .grid > div:nth-child(4) { animation-delay: 0.4s; }
-        .grid > div:nth-child(5) { animation-delay: 0.5s; }
-        .grid > div:nth-child(6) { animation-delay: 0.6s; }
-        .grid > div:nth-child(7) { animation-delay: 0.7s; }
-        .grid > div:nth-child(8) { animation-delay: 0.8s; }
-      `}</style>
+                <p className="text-xs text-orange-600 font-medium mb-2">
+                  {program.tag}
+                </p>
+
+                <p className="text-gray-700 mb-4 leading-relaxed">
+                  {program.description}
+                </p>
+
+                <button
+                  onClick={() => handleClick(program.link)}
+                  className="text-[#e85222] font-semibold hover:underline"
+                >
+                  Get Details →
+                </button>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* FINAL CTA */}
+          <div className="text-center mt-14">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Not sure which program is right for you?
+            </h3>
+            <button className="bg-[#e85222] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#cf4118] transition">
+              Book Free Counselling
+            </button>
+          </div>
+        </motion.section>
+      </div>
     </section>
   );
 };

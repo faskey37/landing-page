@@ -213,46 +213,51 @@ const HeroSection = () => {
         {/* Mobile: Single column, Desktop: Two columns */}
         <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
           
-          {/* Left Column - Content */}
-          <div className="w-full space-y-6 md:space-y-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-              Career Launcher Pune Undri
-            </h1>
-            
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-              Career Launcher Pune provides expert coaching classes for CAT, CLAT, IPMAT, and other entrance exams like XAT, SNAP, NMAT, CET, AILET, BBA, SET, and MHECET.
-            </p>
+         <div className="w-full space-y-6 md:space-y-8">
 
-            <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-                Why Choose Career Launcher for Tuitions, CAT, CLAT & IPMAT Coaching?
-              </h2>
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                At Career Launcher Pune, our coaching classes focus on building strong fundamentals, improving aptitude, and enhancing test-taking strategies. Our experienced mentors provide personalized attention, ensuring students get their doubts cleared instantly and develop confidence in solving complex problems.
-              </p>
-            </div>
+  {/* 🏢 Brand Identity */}
+  <p className="text-sm text-gray-600 font-medium">
+    Career Launcher Pune (Undri)
+  </p>
 
-            <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-                Can Only Toppers Crack Competitive Exams? The Truth About CAT, CLAT & IPMAT Success
-              </h2>
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-3 md:mb-4">
-                Many students believe that only toppers can crack competitive exams like CAT, CLAT, and IPMAT, but the truth is that success depends on dedication, smart learning strategies, and consistent practice. Just like in sports, where training and strategy determine performance, <strong className="font-semibold text-gray-900">cracking competitive exams requires effective time management, problem-solving skills, and the right preparation techniques</strong>.
-              </p>
-              <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                If you want to <strong className="font-semibold text-gray-900">crack CAT, CLAT, or IPMAT</strong>, focus on <strong className="font-semibold text-gray-900">concept clarity, regular mock tests, and strategic study plans</strong> rather than just rote learning. With the right guidance and a disciplined approach, <strong className="font-semibold text-gray-900">any student can achieve top scores</strong> and secure admission to prestigious institutions.
-              </p>
-            </div>
+  {/* 🎯 Professional Headline */}
+  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+    Comprehensive Coaching for CAT, CLAT & IPMAT
+  </h1>
 
-            <div className="bg-orange-50 border-l-4 border-orange-500 p-4 md:p-6 rounded-r-lg">
-              <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
-                Get Expert Coaching for CAT, CLAT & IPMAT
-              </h3>
-              <p className="text-sm md:text-base text-gray-700">
-                Looking for expert coaching? Get personalized study plans, mock tests, and expert mentorship to boost your preparation!
-              </p>
-            </div>
-          </div>
+  {/* 📌 Subheadline */}
+  <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-xl">
+    Structured programs designed to build strong fundamentals, enhance problem-solving ability,
+    and prepare students for competitive entrance exams with confidence.
+  </p>
+
+  {/* ✅ Key Highlights */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm md:text-base text-gray-700">
+    <div>• Personalized Mentorship</div>
+    <div>• Comprehensive Study Material</div>
+    <div>• Regular Mock Tests & Analysis</div>
+    <div>• Experienced Faculty</div>
+  </div>
+
+  {/* 🧠 Credibility Section */}
+  <div className="border-l-4 border-gray-300 pl-4">
+    <p className="text-sm md:text-base text-gray-700">
+      Our programs focus on conceptual clarity, disciplined preparation, and strategic test-taking
+      — enabling students from diverse academic backgrounds to perform at their best.
+    </p>
+  </div>
+
+  {/* 🎁 Callout (Professional Tone) */}
+  <div className="bg-gray-50 border border-gray-200 p-4 md:p-5 rounded-lg">
+    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+      Schedule a Free Counselling Session
+    </h3>
+    <p className="text-sm md:text-base text-gray-600">
+      Speak with our academic advisors to understand the right preparation strategy based on your goals.
+    </p>
+  </div>
+
+</div>
 
           {/* Right Column - Form */}
           <div className="w-full lg:pl-8">

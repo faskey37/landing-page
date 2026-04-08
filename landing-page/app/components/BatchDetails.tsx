@@ -43,8 +43,12 @@ const BatchDetails = () => {
 
         {/* Title */}
         <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-6 md:mb-8 text-left">
-          Batch Details at Pune - Undri
-        </h2>
+  Choose the Right Program for Your Goal
+</h2>
+
+<p className="text-sm md:text-base text-gray-600 mb-6">
+  Explore our classroom and online programs designed for CAT, CLAT & IPMAT preparation.
+</p>
 
         {/* ======================================== */}
         {/* DESKTOP VIEW (Table layout) */}
