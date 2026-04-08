@@ -9,43 +9,43 @@ const AboutSection = () => {
       title: "CLASS-8",
       description: "Build strong academic foundations and develop early problem-solving skills.",
       tag: "Ideal for: Class 8 Students",
-      link: "#"
+      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-8&rt=microsite&rl=1424"
     },
     {
       title: "CLASS-9",
       description: "Structured preparation programs to strengthen concepts and improve academic performance.",
       tag: "Ideal for: Class 9 Students",
-      link: "#"
+      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-9&rt=microsite&rl=1424"
     },
     {
       title: "CLASS-10",
       description: "Focused preparation to excel in board exams while building competitive exam readiness.",
       tag: "Ideal for: Class 10 Students",
-      link: "#"
+      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-10&rt=microsite&rl=1424"
     },
     {
       title: "CLASS-11",
       description: "Begin structured preparation for competitive exams with concept clarity and strategy.",
       tag: "Ideal for: Class 11 Students",
-      link: "#"
+      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-11&rt=microsite&rl=1424"
     },
     {
       title: "CLASS-12",
       description: "Comprehensive programs for board exams along with entrance preparation support.",
       tag: "Ideal for: Class 12 Students",
-      link: "#"
+      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=CLASS-12&rt=microsite&rl=1424"
     },
     {
       title: "BBA/IPM",
       description: "Specialized coaching programs for IPM & BBA entrance exams.",
       tag: "Ideal for: After 12th Students",
-      link: "#"
+      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=BBA/IPM&rt=microsite&rl=1424"
     },
     {
       title: "LAW",
       description: "Expert coaching for CLAT & AILET with proven results.",
       tag: "Ideal for: Law Aspirants",
-      link: "#"
+      link: "https://www.careerlauncher.com/cl-online/product-category.jsp?prodCat=LAW&rt=microsite&rl=1424"
     }
   ];
 
