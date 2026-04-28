@@ -43,11 +43,23 @@ const HeroSection = () => {
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.mobile || formData.mobile.length !== 10) {
-      setSubmitStatus({ 
-        type: 'error', 
-        message: 'Please enter a valid 10-digit mobile number' 
-      });
+    if (!formData.name.trim()) {
+      setSubmitStatus({ type: 'error', message: 'Please enter your full name' });
+      return;
+    }
+    
+    if (!formData.email.trim()) {
+      setSubmitStatus({ type: 'error', message: 'Please enter your email address' });
+      return;
+    }
+    
+    if (!formData.mobile || !/^[6-9]\d{9}$/.test(formData.mobile)) {
+      setSubmitStatus({ type: 'error', message: 'Please enter a valid 10-digit Indian mobile number' });
+      return;
+    }
+    
+    if (!formData.program) {
+      setSubmitStatus({ type: 'error', message: 'Please select a program' });
       return;
     }
 
@@ -58,7 +70,12 @@ const HeroSection = () => {
       const response = await fetch('/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile: formData.mobile })
+        body: JSON.stringify({
+          mobile: formData.mobile,
+          name: formData.name,
+          email: formData.email,
+          program: formData.program
+        })
       });
 
       const data = await response.json();
@@ -71,9 +88,10 @@ const HeroSection = () => {
         setSubmitStatus({ type: 'success', message: 'OTP sent to your mobile number!' });
         setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
       } else {
-        setSubmitStatus({ type: 'error', message: data.message });
+        setSubmitStatus({ type: 'error', message: data.message || 'Failed to send OTP' });
       }
     } catch (error) {
+      console.error('Send OTP error:', error);
       setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
     } finally {
       setIsSubmitting(false);
@@ -81,65 +99,65 @@ const HeroSection = () => {
   };
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  console.log('=== VERIFY BUTTON CLICKED ===');
+  console.log('OTP entered:', otp);
+  console.log('Mobile:', formData.mobile);
+  
+  if (!otp || otp.length !== 6) {
+    setSubmitStatus({ type: 'error', message: 'Please enter a valid 6-digit OTP' });
+    return;
+  }
+
+  setIsSubmitting(true);
+  setSubmitStatus({ type: null, message: '' });
+
+  try {
+    console.log('Sending verification request to API...');
     
-    if (!otp || otp.length !== 6) {
-      setSubmitStatus({ type: 'error', message: 'Please enter a valid 6-digit OTP' });
-      return;
-    }
+    const response = await fetch('/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        mobile: formData.mobile, 
+        otp: otp 
+      })
+    });
 
-    setIsSubmitting(true);
-    setSubmitStatus({ type: null, message: '' });
+    const data = await response.json();
+    console.log('API Response:', data);
 
-    try {
-      const verifyResponse = await fetch('/api/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile: formData.mobile, otp })
-      });
-
-      const verifyData = await verifyResponse.json();
-
-      if (!verifyData.success) {
-        setSubmitStatus({ type: 'error', message: verifyData.message });
-        setIsSubmitting(false);
-        return;
-      }
-
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          verified: true,
-          verified_at: new Date().toISOString(),
-          timestamp: new Date().toISOString()
-        }),
-      });
-
+    if (data.success) {
+      console.log('Verification successful!');
       setSubmitStatus({ 
         type: 'success', 
         message: 'Thank you! Your information has been saved. We will contact you soon.' 
       });
       
+      // Reset form after 3 seconds
       setTimeout(() => {
         setFormData({ name: '', email: '', mobile: '', program: '' });
         setOtp('');
         setStep('form');
-        setSubmitStatus({ type: null, message: '' });
         setResendAttempts(0);
+        setMaxAttemptsReached(false);
+        setIsSubmitting(false);
       }, 3000);
-      
-    } catch (error) {
-      setSubmitStatus({ 
-        type: 'error', 
-        message: 'Something went wrong. Please try again.' 
-      });
-    } finally {
+    } else {
+      console.log('Verification failed:', data.message);
+      setSubmitStatus({ type: 'error', message: data.message });
       setIsSubmitting(false);
     }
-  };
+  } catch (error) {
+    console.error('Verification error:', error);
+    setSubmitStatus({ 
+      type: 'error', 
+      message: 'Network error. Please try again.' 
+    });
+    setIsSubmitting(false);
+  }
+};
 
   const handleResendOTP = async () => {
     if (timer > 0) {
@@ -148,7 +166,7 @@ const HeroSection = () => {
     }
     
     if (maxAttemptsReached || resendAttempts >= 3) {
-      setSubmitStatus({ type: 'error', message: 'Maximum resend limit reached (3 attempts). Please try again after 1 hour.' });
+      setSubmitStatus({ type: 'error', message: 'Maximum resend limit reached. Please try again after 1 hour.' });
       return;
     }
     
@@ -164,25 +182,20 @@ const HeroSection = () => {
       const data = await response.json();
 
       if (data.success) {
-        setTimer(30);
+        setTimer(60);
         setResendAttempts(prev => prev + 1);
         
         if (data.remainingAttempts === 0) {
           setMaxAttemptsReached(true);
         }
         
-        setSubmitStatus({ 
-          type: 'success', 
-          message: data.message || 'OTP resent successfully!' 
-        });
+        setSubmitStatus({ type: 'success', message: 'OTP resent successfully!' });
         setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
       } else {
         setSubmitStatus({ type: 'error', message: data.message });
-        if (data.limitExceeded) {
-          setMaxAttemptsReached(true);
-        }
       }
     } catch (error) {
+      console.error('Resend error:', error);
       setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
     } finally {
       setIsSubmitting(false);
@@ -197,67 +210,58 @@ const HeroSection = () => {
 
   return (
     <div 
-  className="w-full overflow-x-hidden relative -mt-24 z-30"
-  style={{
-    backgroundImage: `url('https://clsite-file1.s3.amazonaws.com/106960_micrositebanner_bg.png')`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    backgroundColor:'#FFF0EB',
-    borderTopLeftRadius: '24px',
-    borderTopRightRadius: '24px',
-  }}
->
-      {/* Added extra padding-top on mobile to prevent heading from hiding behind header */}
+      className="w-full overflow-x-hidden relative -mt-24 z-30"
+      style={{
+        backgroundImage: `url('https://clsite-file1.s3.amazonaws.com/106960_micrositebanner_bg.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor:'#FFF0EB',
+        borderTopLeftRadius: '24px',
+        borderTopRightRadius: '24px',
+      }}
+    >
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 lg:pt-8 pb-8 md:py-12 lg:py-16">
-        {/* Mobile: Single column, Desktop: Two columns */}
         <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
           
-         <div className="w-full space-y-6 md:space-y-8">
+          {/* Left Column - Content */}
+          <div className="w-full space-y-6 md:space-y-8">
+            <p className="text-sm text-gray-600 font-medium">
+              Career Launcher Pune (Undri)
+            </p>
 
-  {/* 🏢 Brand Identity */}
-  <p className="text-sm text-gray-600 font-medium">
-    Career Launcher Pune (Undri)
-  </p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+              Comprehensive Coaching for CAT, CLAT & IPMAT
+            </h1>
 
-  {/* 🎯 Professional Headline */}
-  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-    Comprehensive Coaching for CAT, CLAT & IPMAT
-  </h1>
+            <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-xl">
+              Structured programs designed to build strong fundamentals, enhance problem-solving ability,
+              and prepare students for competitive entrance exams with confidence.
+            </p>
 
-  {/* 📌 Subheadline */}
-  <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-xl">
-    Structured programs designed to build strong fundamentals, enhance problem-solving ability,
-    and prepare students for competitive entrance exams with confidence.
-  </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm md:text-base text-gray-700">
+              <div>• Personalized Mentorship</div>
+              <div>• Comprehensive Study Material</div>
+              <div>• Regular Mock Tests & Analysis</div>
+              <div>• Experienced Faculty</div>
+            </div>
 
-  {/* ✅ Key Highlights */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm md:text-base text-gray-700">
-    <div>• Personalized Mentorship</div>
-    <div>• Comprehensive Study Material</div>
-    <div>• Regular Mock Tests & Analysis</div>
-    <div>• Experienced Faculty</div>
-  </div>
+            <div className="border-l-4 border-gray-300 pl-4">
+              <p className="text-sm md:text-base text-gray-700">
+                Our programs focus on conceptual clarity, disciplined preparation, and strategic test-taking
+                — enabling students from diverse academic backgrounds to perform at their best.
+              </p>
+            </div>
 
-  {/* 🧠 Credibility Section */}
-  <div className="border-l-4 border-gray-300 pl-4">
-    <p className="text-sm md:text-base text-gray-700">
-      Our programs focus on conceptual clarity, disciplined preparation, and strategic test-taking
-      — enabling students from diverse academic backgrounds to perform at their best.
-    </p>
-  </div>
-
-  {/* 🎁 Callout (Professional Tone) */}
-  <div className="bg-gray-50 border border-gray-200 p-4 md:p-5 rounded-lg">
-    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-      Schedule a Free Counselling Session
-    </h3>
-    <p className="text-sm md:text-base text-gray-600">
-      Speak with our academic advisors to understand the right preparation strategy based on your goals.
-    </p>
-  </div>
-
-</div>
+            <div className="bg-gray-50 border border-gray-200 p-4 md:p-5 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                Schedule a Free Counselling Session
+              </h3>
+              <p className="text-sm md:text-base text-gray-600">
+                Speak with our academic advisors to understand the right preparation strategy based on your goals.
+              </p>
+            </div>
+          </div>
 
           {/* Right Column - Form */}
           <div className="w-full lg:pl-8">

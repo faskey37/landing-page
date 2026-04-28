@@ -1,83 +1,58 @@
 // app/api/send-otp/route.ts
 import { NextResponse } from 'next/server';
-import { securityService } from '@/app/lib/security-service';
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import { otpStore } from '@/app/lib/firebase-otp-store';
 
 export async function POST(request: Request) {
-  const { mobile } = await request.json();
-  
-  // Get client IP
-  const ip = request.headers.get('x-forwarded-for') || 
-             request.headers.get('x-real-ip') || 
-             'unknown';
-  
-  // Generate request fingerprint for bot detection
-  const userAgent = request.headers.get('user-agent') || '';
-  const acceptLanguage = request.headers.get('accept-language') || '';
-  const fingerprint = crypto
-    .createHash('sha256')
-    .update(`${ip}${userAgent}${acceptLanguage}`)
-    .digest('hex');
-  
-  // Check if IP is blocked
-  if (securityService.isIPBlocked(ip)) {
-    securityService.reportSuspicious(mobile, ip, 'Blocked IP attempted OTP request');
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Too many suspicious requests. Please try again later.',
-      blockDuration: '24 hours'
-    }, { status: 429 });
-  }
-  
-  // Validate mobile number format
-  const mobileRegex = /^[6-9]\d{9}$/;
-  if (!mobileRegex.test(mobile)) {
-    securityService.reportSuspicious(mobile, ip, 'Invalid mobile number format');
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Please enter a valid 10-digit Indian mobile number.' 
-    });
-  }
-  
-  // Check rate limit for mobile number
-  const mobileRateLimit = securityService.checkMobileRateLimit(mobile);
-  if (!mobileRateLimit.allowed) {
-    return NextResponse.json({ 
-      success: false, 
-      message: mobileRateLimit.message,
-      waitTime: mobileRateLimit.waitTime
-    }, { status: 429 });
-  }
-  
-  // Check rate limit for IP
-  const ipRateLimit = securityService.checkIPRateLimit(ip);
-  if (!ipRateLimit.allowed) {
-    securityService.reportSuspicious(mobile, ip, 'IP rate limit exceeded');
-    return NextResponse.json({ 
-      success: false, 
-      message: ipRateLimit.message,
-      waitTime: ipRateLimit.waitTime
-    }, { status: 429 });
-  }
-  
-  // Check resend cooldown
-  const cooldown = securityService.checkResendCooldown(mobile);
-  if (!cooldown.allowed) {
-    return NextResponse.json({ 
-      success: false, 
-      message: `Please wait ${cooldown.waitTime} seconds before requesting another OTP.`,
-      waitTime: cooldown.waitTime
-    }, { status: 429 });
-  }
-  
-  const MSG91_AUTH_KEY = process.env.MSG91_AUTH_KEY!;
-  const MSG91_TEMPLATE_ID = process.env.MSG91_OTP_TEMPLATE_ID!;
-  
-  // Generate OTP (6 digits)
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  
   try {
-    // Send OTP using MSG91
+    const { mobile, name, email, program } = await request.json();
+    
+    console.log('=== SEND OTP VIA MSG91 ===');
+    console.log('Mobile:', mobile);
+    console.log('Name:', name);
+    console.log('Email:', email);
+    console.log('Program:', program);
+    
+    // Validate mobile
+    const mobileRegex = /^[6-9]\d{9}$/;
+    if (!mobileRegex.test(mobile)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Please enter a valid 10-digit Indian mobile number.' 
+      });
+    }
+    
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpHash = await bcrypt.hash(otp, 10);
+    
+    // Store in Firebase
+    await otpStore.save(mobile, {
+      mobile: mobile,
+      name: name || '',
+      email: email || '',
+      program: program || '',
+      otpHash: otpHash,
+      attempts: 0,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+    });
+    
+    console.log('✅ OTP stored in Firebase');
+    console.log('📱 OTP value:', otp);
+    
+    // MSG91 Configuration
+    const MSG91_AUTH_KEY = process.env.MSG91_AUTH_KEY;
+    const MSG91_TEMPLATE_ID = process.env.MSG91_OTP_TEMPLATE_ID;
+    
+    if (!MSG91_AUTH_KEY) {
+      console.error('❌ MSG91_AUTH_KEY not configured');
+      return NextResponse.json({ 
+        success: false, 
+        message: 'SMS service not configured. Please contact support.' 
+      });
+    }
+    
+    // Send OTP via MSG91
     const response = await fetch('https://api.msg91.com/api/v5/otp', {
       method: 'POST',
       headers: {
@@ -87,43 +62,36 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         mobile: `91${mobile}`,
         template_id: MSG91_TEMPLATE_ID,
+        otp: otp,
         otp_expiry: parseInt(process.env.OTP_EXPIRY_MINUTES || '10'),
-        otp_length: 6,
-        otp: otp // Send custom OTP
+        otp_length: 6
       })
     });
     
     const data = await response.json();
+    console.log('MSG91 Response:', data);
     
     if (data.type === 'success') {
-      // Store OTP for verification
-      securityService.storeOTP(mobile, otp);
-      
-      // Record attempts
-      securityService.recordAttempt(mobile, 'mobile');
-      securityService.recordAttempt(ip, 'ip');
-      
-      const remainingAttempts = securityService.getRemainingResendAttempts(mobile);
-      
+      console.log(`✅ OTP sent successfully to ${mobile}`);
       return NextResponse.json({ 
         success: true, 
-        message: 'OTP sent successfully',
-        order_id: data.order_id,
-        remainingAttempts,
-        expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '10')
+        message: 'OTP sent successfully to your mobile!',
+        expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '10'),
+        requestId: data.request_id
       });
     } else {
+      console.error('❌ MSG91 Error:', data);
       return NextResponse.json({ 
         success: false, 
-        message: data.message || 'Failed to send OTP' 
+        message: data.message || 'Failed to send OTP. Please try again.'
       });
     }
     
   } catch (error) {
-    console.error('MSG91 Error:', error);
+    console.error('Send OTP Error:', error);
     return NextResponse.json({ 
       success: false, 
-      message: 'Error sending OTP. Please try again.' 
-    }, { status: 500 });
+      message: 'Error sending OTP: ' + error.message
+    });
   }
 }

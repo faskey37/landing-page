@@ -6,6 +6,7 @@ export interface OTPData {
   mobile: string;
   email: string;
   name: string;
+  program: string;
   otpHash: string;
   attempts: number;
   expiresAt: Date;
@@ -13,41 +14,53 @@ export interface OTPData {
 
 export class FirebaseOTPStore {
   
-  // Store OTP
   async save(mobile: string, data: OTPData): Promise<void> {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
     
-    await db.collection('otps').doc(mobile).set({
-      ...data,
+    // Store ALL fields including name, email, program
+    const docData = {
+      mobile: data.mobile,
+      email: data.email,
+      name: data.name,
+      program: data.program,
+      otpHash: data.otpHash,
+      attempts: data.attempts,
       expiresAt: expiresAt,
-      expireAt: expiresAt, // For Firestore TTL
       createdAt: new Date()
-    });
+    };
+    
+    console.log('📝 Saving to Firestore:', docData);
+    
+    await db.collection('otps').doc(mobile).set(docData);
   }
   
-  // Get OTP data
   async get(mobile: string): Promise<OTPData | null> {
     const doc = await db.collection('otps').doc(mobile).get();
     if (!doc.exists) return null;
-    return doc.data() as OTPData;
+    const data = doc.data();
+    console.log('📖 Retrieved from Firestore:', data);
+    return {
+      mobile: data?.mobile || '',
+      email: data?.email || '',
+      name: data?.name || '',
+      program: data?.program || '',
+      otpHash: data?.otpHash || '',
+      attempts: data?.attempts || 0,
+      expiresAt: data?.expiresAt?.toDate() || new Date()
+    };
   }
   
-  // Delete OTP
   async delete(mobile: string): Promise<void> {
     await db.collection('otps').doc(mobile).delete();
   }
   
-  // Verify OTP
   async verify(mobile: string, userOtp: string): Promise<boolean> {
     const data = await this.get(mobile);
     if (!data) return false;
-    
-    // Compare plain text OTP with hashed OTP
     return await bcrypt.compare(userOtp, data.otpHash);
   }
   
-  // Increment failed attempts
   async incrementAttempts(mobile: string): Promise<void> {
     await db.collection('otps').doc(mobile).update({
       attempts: admin.firestore.FieldValue.increment(1)
