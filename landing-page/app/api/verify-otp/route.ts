@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       });
     }
     
-    // Get OTP data from Firestore
+    // Get OTP data from Firebase
     const otpData = await otpStore.get(mobile);
     
     if (!otpData) {
@@ -61,44 +61,28 @@ export async function POST(request: Request) {
       });
     }
     
-    // OTP Verified - Prepare data for Google Sheets
-    const sheetData = {
-      name: otpData.name || '',
-      email: otpData.email || '',
-      mobile: otpData.mobile,
-      program: otpData.program || '',
-      verified: true,
-      verified_at: new Date().toISOString()
-    };
-    
-    console.log('📊 Saving to Google Sheets:', sheetData);
-    
-    // Save to Google Sheets
+    // OTP Verified - Save to Google Sheets
     const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL;
     
     if (GOOGLE_SCRIPT_URL) {
       try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(sheetData)
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: otpData.name,
+            email: otpData.email,
+            mobile: otpData.mobile,
+            program: otpData.program,
+            verified: true,
+            verified_at: new Date().toISOString()
+          })
         });
-        
-        const result = await response.json();
-        console.log('Google Sheets Response:', result);
-        
-        if (result.success) {
-          console.log('✅ Data saved to Google Sheets');
-        } else {
-          console.error('Google Sheets error:', result.message);
-        }
+        console.log('✅ Data saved to Google Sheets');
       } catch (sheetError) {
-        console.error('Google Sheets fetch error:', sheetError);
+        console.error('Google Sheets error:', sheetError);
       }
-    } else {
-      console.warn('⚠️ GOOGLE_SCRIPT_URL not configured');
     }
     
     // Save to Firebase Users collection
@@ -120,18 +104,28 @@ export async function POST(request: Request) {
     // Delete used OTP
     await otpStore.delete(mobile);
     
-    console.log('✅ OTP verified successfully');
+    console.log(`✅ OTP verified successfully for: ${mobile}`);
     
     return NextResponse.json({ 
       success: true, 
-      message: 'OTP verified successfully!' 
+      message: 'OTP verified successfully!',
+      user: {
+        name: otpData.name,
+        email: otpData.email,
+        mobile: otpData.mobile,
+        program: otpData.program
+      }
     });
     
   } catch (error) {
-    console.error('❌ Verification error:', error);
+    console.error('Verification error:', error);
+    // Fix: Handle error safely without accessing error.message if undefined
+    const errorMessage = error && typeof error === 'object' && 'message' in error 
+      ? String(error.message) 
+      : 'Unknown error occurred';
     return NextResponse.json({ 
       success: false, 
-      message: 'Verification failed: ' + error.message
+      message: 'Verification failed: ' + errorMessage
     });
   }
 }
