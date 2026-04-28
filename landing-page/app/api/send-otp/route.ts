@@ -3,6 +3,14 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { otpStore } from '@/app/lib/firebase-otp-store';
 
+// Helper function to get current hour in IST
+function getCurrentHourIST(): number {
+  // Create date in IST (UTC+5:30)
+  const now = new Date();
+  const istTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  return istTime.getHours();
+}
+
 export async function POST(request: Request) {
   try {
     const { mobile, name, email, program } = await request.json();
@@ -22,18 +30,27 @@ export async function POST(request: Request) {
       });
     }
     
-    // Check DLT timing (9 AM to 9 PM only)
-    const now = new Date();
-    const currentHour = now.getHours();
+    // Get current hour in IST
+    const currentHour = getCurrentHourIST();
     const isDLTActive = currentHour >= 9 && currentHour < 21;
     
-    // If outside DLT hours, show message and return
+    console.log('IST Hour:', currentHour);
+    console.log('DLT Active:', isDLTActive);
+    
+    // If outside DLT hours (9 PM - 9 AM IST), show message
     if (!isDLTActive) {
+      let nextTime = '';
+      if (currentHour >= 21) {
+        nextTime = 'tomorrow at 9 AM';
+      } else {
+        nextTime = 'today at 9 AM';
+      }
+      
       return NextResponse.json({ 
         success: false, 
-        message: 'SMS service is currently unavailable (9 PM - 9 AM). Please try again between 9 AM and 9 PM.',
-        retryAfter: '9 AM',
-        isTimeRestricted: true
+        message: `SMS service is currently unavailable (9 PM - 9 AM IST). Please try again ${nextTime}.`,
+        isTimeRestricted: true,
+        currentHour: currentHour
       }, { status: 503 });
     }
     
@@ -41,7 +58,7 @@ export async function POST(request: Request) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpHash = await bcrypt.hash(otp, 10);
     
-    // Store in Firebase (only during active hours)
+    // Store in Firebase
     await otpStore.save(mobile, {
       mobile: mobile,
       name: name || '',
