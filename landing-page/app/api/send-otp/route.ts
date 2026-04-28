@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const { mobile, name, email, program } = await request.json();
     
-    console.log('=== SEND OTP VIA MSG91 ===');
+    console.log('=== SEND OTP ===');
     console.log('Mobile:', mobile);
     console.log('Name:', name);
     console.log('Email:', email);
@@ -22,11 +22,26 @@ export async function POST(request: Request) {
       });
     }
     
+    // Check DLT timing (9 AM to 9 PM only)
+    const now = new Date();
+    const currentHour = now.getHours();
+    const isDLTActive = currentHour >= 9 && currentHour < 21;
+    
+    // If outside DLT hours, show message and return
+    if (!isDLTActive) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'SMS service is currently unavailable (9 PM - 9 AM). Please try again between 9 AM and 9 PM.',
+        retryAfter: '9 AM',
+        isTimeRestricted: true
+      }, { status: 503 });
+    }
+    
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpHash = await bcrypt.hash(otp, 10);
     
-    // Store in Firebase
+    // Store in Firebase (only during active hours)
     await otpStore.save(mobile, {
       mobile: mobile,
       name: name || '',
@@ -37,22 +52,19 @@ export async function POST(request: Request) {
       expiresAt: new Date(Date.now() + 10 * 60 * 1000)
     });
     
-    console.log('✅ OTP stored in Firebase');
-    console.log('📱 OTP value:', otp);
+    console.log('✅ OTP stored, value:', otp);
     
-    // MSG91 Configuration
+    // Send OTP via MSG91
     const MSG91_AUTH_KEY = process.env.MSG91_AUTH_KEY;
     const MSG91_TEMPLATE_ID = process.env.MSG91_OTP_TEMPLATE_ID;
     
     if (!MSG91_AUTH_KEY) {
-      console.error('❌ MSG91_AUTH_KEY not configured');
       return NextResponse.json({ 
         success: false, 
-        message: 'SMS service not configured. Please contact support.' 
+        message: 'SMS service not configured.' 
       });
     }
     
-    // Send OTP via MSG91
     const response = await fetch('https://api.msg91.com/api/v5/otp', {
       method: 'POST',
       headers: {
@@ -63,7 +75,7 @@ export async function POST(request: Request) {
         mobile: `91${mobile}`,
         template_id: MSG91_TEMPLATE_ID,
         otp: otp,
-        otp_expiry: parseInt(process.env.OTP_EXPIRY_MINUTES || '10'),
+        otp_expiry: 10,
         otp_length: 6
       })
     });
@@ -72,15 +84,12 @@ export async function POST(request: Request) {
     console.log('MSG91 Response:', data);
     
     if (data.type === 'success') {
-      console.log(`✅ OTP sent successfully to ${mobile}`);
       return NextResponse.json({ 
         success: true, 
         message: 'OTP sent successfully to your mobile!',
-        expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '10'),
-        requestId: data.request_id
+        expiryMinutes: 10
       });
     } else {
-      console.error('❌ MSG91 Error:', data);
       return NextResponse.json({ 
         success: false, 
         message: data.message || 'Failed to send OTP. Please try again.'
@@ -91,7 +100,7 @@ export async function POST(request: Request) {
     console.error('Send OTP Error:', error);
     return NextResponse.json({ 
       success: false, 
-      message: 'Error sending OTP: ' + error.message
+      message: 'Error sending OTP. Please try again.'
     });
   }
 }

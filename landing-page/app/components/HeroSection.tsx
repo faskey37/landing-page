@@ -13,15 +13,15 @@ const HeroSection = () => {
   const [step, setStep] = useState<'form' | 'otp'>('form');
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
+  const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error' | 'info' | null; message: string }>({
     type: null,
     message: ''
   });
   const [timer, setTimer] = useState(0);
   const [resendAttempts, setResendAttempts] = useState(0);
   const [maxAttemptsReached, setMaxAttemptsReached] = useState(false);
-
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+  const [showDebugOtp, setShowDebugOtp] = useState(false);
+  const [debugOtp, setDebugOtp] = useState('');
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -40,73 +40,28 @@ const HeroSection = () => {
     });
   };
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name.trim()) {
-      setSubmitStatus({ type: 'error', message: 'Please enter your full name' });
-      return;
-    }
-    
-    if (!formData.email.trim()) {
-      setSubmitStatus({ type: 'error', message: 'Please enter your email address' });
-      return;
-    }
-    
-    if (!formData.mobile || !/^[6-9]\d{9}$/.test(formData.mobile)) {
-      setSubmitStatus({ type: 'error', message: 'Please enter a valid 10-digit Indian mobile number' });
-      return;
-    }
-    
-    if (!formData.program) {
-      setSubmitStatus({ type: 'error', message: 'Please select a program' });
-      return;
-    }
+  // In your HeroSection.tsx - Update handleSendOTP
 
-    setIsSubmitting(true);
-    setSubmitStatus({ type: null, message: '' });
-
-    try {
-      const response = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mobile: formData.mobile,
-          name: formData.name,
-          email: formData.email,
-          program: formData.program
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setStep('otp');
-        setTimer(60);
-        setResendAttempts(1);
-        setMaxAttemptsReached(false);
-        setSubmitStatus({ type: 'success', message: 'OTP sent to your mobile number!' });
-        setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
-      } else {
-        setSubmitStatus({ type: 'error', message: data.message || 'Failed to send OTP' });
-      }
-    } catch (error) {
-      console.error('Send OTP error:', error);
-      setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
+const handleSendOTP = async (e: React.FormEvent) => {
   e.preventDefault();
   
-  console.log('=== VERIFY BUTTON CLICKED ===');
-  console.log('OTP entered:', otp);
-  console.log('Mobile:', formData.mobile);
+  if (!formData.name.trim()) {
+    setSubmitStatus({ type: 'error', message: 'Please enter your full name' });
+    return;
+  }
   
-  if (!otp || otp.length !== 6) {
-    setSubmitStatus({ type: 'error', message: 'Please enter a valid 6-digit OTP' });
+  if (!formData.email.trim()) {
+    setSubmitStatus({ type: 'error', message: 'Please enter your email address' });
+    return;
+  }
+  
+  if (!formData.mobile || !/^[6-9]\d{9}$/.test(formData.mobile)) {
+    setSubmitStatus({ type: 'error', message: 'Please enter a valid 10-digit Indian mobile number' });
+    return;
+  }
+  
+  if (!formData.program) {
+    setSubmitStatus({ type: 'error', message: 'Please select a program' });
     return;
   }
 
@@ -114,50 +69,93 @@ const HeroSection = () => {
   setSubmitStatus({ type: null, message: '' });
 
   try {
-    console.log('Sending verification request to API...');
-    
-    const response = await fetch('/api/verify-otp', {
+    const response = await fetch('/api/send-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        mobile: formData.mobile, 
-        otp: otp 
+      body: JSON.stringify({
+        mobile: formData.mobile,
+        name: formData.name,
+        email: formData.email,
+        program: formData.program
       })
     });
 
     const data = await response.json();
-    console.log('API Response:', data);
 
     if (data.success) {
-      console.log('Verification successful!');
-      setSubmitStatus({ 
-        type: 'success', 
-        message: 'Thank you! Your information has been saved. We will contact you soon.' 
-      });
-      
-      // Reset form after 3 seconds
-      setTimeout(() => {
-        setFormData({ name: '', email: '', mobile: '', program: '' });
-        setOtp('');
-        setStep('form');
-        setResendAttempts(0);
-        setMaxAttemptsReached(false);
-        setIsSubmitting(false);
-      }, 3000);
+      setStep('otp');
+      setTimer(60);
+      setResendAttempts(1);
+      setMaxAttemptsReached(false);
+      setSubmitStatus({ type: 'success', message: 'OTP sent to your mobile number!' });
+      setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
     } else {
-      console.log('Verification failed:', data.message);
-      setSubmitStatus({ type: 'error', message: data.message });
-      setIsSubmitting(false);
+      // Handle time restriction error
+      if (data.isTimeRestricted) {
+        setSubmitStatus({ 
+          type: 'error', 
+          message: 'SMS service is currently unavailable (9 PM - 9 AM). Please try again between 9 AM and 9 PM.' 
+        });
+      } else {
+        setSubmitStatus({ type: 'error', message: data.message || 'Failed to send OTP' });
+      }
     }
   } catch (error) {
-    console.error('Verification error:', error);
-    setSubmitStatus({ 
-      type: 'error', 
-      message: 'Network error. Please try again.' 
-    });
+    console.error('Send OTP error:', error);
+    setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
+  } finally {
     setIsSubmitting(false);
   }
 };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!otp || otp.length !== 6) {
+      setSubmitStatus({ type: 'error', message: 'Please enter a valid 6-digit OTP' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: '' });
+
+    try {
+      const response = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          mobile: formData.mobile, 
+          otp: otp 
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitStatus({ 
+          type: 'success', 
+          message: 'Thank you! Your information has been saved. We will contact you soon.' 
+        });
+        
+        setTimeout(() => {
+          setFormData({ name: '', email: '', mobile: '', program: '' });
+          setOtp('');
+          setStep('form');
+          setResendAttempts(0);
+          setMaxAttemptsReached(false);
+          setShowDebugOtp(false);
+          setDebugOtp('');
+        }, 3000);
+      } else {
+        setSubmitStatus({ type: 'error', message: data.message || 'Invalid OTP. Please try again.' });
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleResendOTP = async () => {
     if (timer > 0) {
@@ -184,12 +182,13 @@ const HeroSection = () => {
       if (data.success) {
         setTimer(60);
         setResendAttempts(prev => prev + 1);
+        setSubmitStatus({ type: 'success', message: 'OTP resent successfully!' });
         
-        if (data.remainingAttempts === 0) {
-          setMaxAttemptsReached(true);
+        if (data.showDebugOtp) {
+          setDebugOtp(data.otp);
+          setShowDebugOtp(true);
         }
         
-        setSubmitStatus({ type: 'success', message: 'OTP resent successfully!' });
         setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
       } else {
         setSubmitStatus({ type: 'error', message: data.message });
@@ -206,6 +205,15 @@ const HeroSection = () => {
     setStep('form');
     setOtp('');
     setSubmitStatus({ type: null, message: '' });
+    setShowDebugOtp(false);
+    setDebugOtp('');
+  };
+
+  // Fill debug OTP automatically when clicked
+  const fillDebugOtp = () => {
+    if (debugOtp) {
+      setOtp(debugOtp);
+    }
   };
 
   return (
@@ -271,6 +279,28 @@ const HeroSection = () => {
                   Get FREE Counseling Session
                 </h5>
                 
+                {step === 'otp' && showDebugOtp && debugOtp && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-400 rounded-lg">
+                    <p className="text-sm text-yellow-800 font-semibold">⚠️ SMS Service Unavailable (9 PM - 9 AM)</p>
+                    <p className="text-xs text-yellow-700 mt-1">Use this debug OTP to complete verification:</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <code className="text-xl font-mono font-bold text-yellow-900 bg-yellow-100 px-3 py-1 rounded">
+                        {debugOtp}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={fillDebugOtp}
+                        className="text-xs bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                      >
+                        Auto-fill
+                      </button>
+                    </div>
+                    <p className="text-xs text-yellow-600 mt-2">
+                      This OTP will expire in 10 minutes
+                    </p>
+                  </div>
+                )}
+                
                 {submitStatus.type === 'success' && submitStatus.message.includes('Thank you') ? (
                   <div className="text-center mt-4">
                     <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-8 rounded-lg text-center">
@@ -290,6 +320,12 @@ const HeroSection = () => {
                     
                     {submitStatus.type === 'success' && step === 'otp' && (
                       <div className="bg-green-50 border border-green-500 text-green-700 px-3 py-2 rounded-lg text-xs">
+                        {submitStatus.message}
+                      </div>
+                    )}
+                    
+                    {submitStatus.type === 'info' && (
+                      <div className="bg-blue-50 border border-blue-500 text-blue-700 px-3 py-2 rounded-lg text-xs">
                         {submitStatus.message}
                       </div>
                     )}
