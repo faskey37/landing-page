@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FaHeadset, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
+import { FaHeadset, FaVolumeUp, FaVolumeMute, FaWhatsapp } from 'react-icons/fa';
 
 interface VideoHeroSectionProps {
   videoSrc?: string;
@@ -21,6 +21,10 @@ const VideoHeroSection: React.FC<VideoHeroSectionProps> = ({
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Phone numbers
+  const phoneNumber = "+919226342428";
+  const whatsappNumber = "919226342428";
+
   const toggleMute = () => {
     const video = videoRef.current;
     if (video) {
@@ -31,6 +35,14 @@ const VideoHeroSection: React.FC<VideoHeroSectionProps> = ({
 
   const handleVideoError = () => {
     setVideoError(true);
+  };
+
+  const handleTalkToExpert = () => {
+    window.location.href = `tel:${phoneNumber}`;
+  };
+
+  const handleBookDemo = () => {
+    window.open(`https://wa.me/${whatsappNumber}?text=Hi!%20I'm%20interested%20in%20booking%20a%20free%20demo%20class.%20Could%20you%20please%20share%20more%20details?`, '_blank');
   };
 
   return (
@@ -89,20 +101,31 @@ const VideoHeroSection: React.FC<VideoHeroSectionProps> = ({
             Free Demo • Personal Mentorship • Proven Results
           </p>
 
+          {/* Phone Number Display */}
+          <div className="mb-4 sm:mb-6">
+            <a 
+              href={`tel:${phoneNumber}`}
+              className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition"
+            >
+              <FaHeadset className="text-orange-500" />
+              <span>{phoneNumber}</span>
+            </a>
+          </div>
+
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8">
             <motion.button
-              onClick={onButton1Click}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm sm:text-base font-semibold shadow-lg"
+              onClick={handleBookDemo}
+              className="bg-green-600 hover:bg-green-700 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm sm:text-base font-semibold shadow-lg flex items-center justify-center gap-2"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Book Free Demo Class
+              <FaWhatsapp size={18} /> Book Free Demo Class
             </motion.button>
 
             <motion.button
-              onClick={onButton2Click}
-              className="bg-white/10 border border-white/30 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 hover:bg-white/20"
+              onClick={handleTalkToExpert}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm sm:text-base font-semibold flex items-center justify-center gap-2 shadow-lg"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -119,7 +142,7 @@ const VideoHeroSection: React.FC<VideoHeroSectionProps> = ({
         </motion.div>
       </div>
 
-      {/* 🔊 Volume Toggle (Responsive Position) */}
+      {/* 🔊 Volume Toggle */}
       <button
         onClick={toggleMute}
         title={isMuted ? "Unmute Video" : "Mute Video"}

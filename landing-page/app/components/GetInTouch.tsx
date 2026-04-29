@@ -14,33 +14,29 @@ const GetInTouch = () => {
     <section className="w-full font-sans">
 
       {/* 🔥 DESKTOP SECTION */}
-      <div className="hidden md:block relative h-[560px] lg:h-[620px] overflow-hidden">
+      <div className="hidden md:block relative min-h-[560px] lg:min-h-[620px] overflow-hidden">
 
-        {/* 🌍 MAP WITH PADDING */}
-        <div className="absolute inset-0 p-4 md:p-6">
+        {/* 🌍 MAP - FULL WIDTH, NO BLOCKING ELEMENTS */}
+        <div className="absolute inset-0">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15138.437870613532!2d73.9130782!3d18.4560326!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2eb3ad7a249db%3A0x66d1d9a8558708c5!2sCareer%20Launcher%20Pune%20Undri!5e0!3m2!1sen!2sin!4v1730967737512!5m2!1sen!2sin"
-            className="w-full h-full border-0 rounded-2xl"
+            className="w-full h-full border-0"
             loading="lazy"
+            allowFullScreen
           />
         </div>
 
-        {/* 🌫️ LIGHT GRADIENT (NON-BLOCKING) */}
-        <div className="absolute right-0 top-0 h-full w-[40%] bg-gradient-to-l from-white/70 to-transparent pointer-events-none" />
-
-        {/* 🧊 RIGHT SIDE CARD */}
-        <div className="relative z-10 flex items-center justify-end h-full px-6 lg:px-16">
-
+        {/* 🧊 RIGHT SIDE CARD - NO OVERLAY ON MAP, JUST ON TOP */}
+        <div className="relative z-10 flex items-center justify-end h-full px-6 lg:px-16 py-8">
           <div className="
             w-[320px] md:w-[360px]
-            bg-white/80 backdrop-blur-xl
+            bg-white/90 backdrop-blur-md
             border border-gray-200
             rounded-2xl
             p-6 md:p-7
             text-gray-900
             shadow-[0_30px_80px_rgba(0,0,0,0.15)]
           ">
-
             <h2 className="text-xl font-semibold mb-2">
               Visit Our Center
             </h2>
@@ -50,7 +46,6 @@ const GetInTouch = () => {
             </p>
 
             <div className="space-y-4 text-sm">
-
               <div>
                 <p className="text-gray-500 text-xs">Working Hours</p>
                 <p className="font-medium">9 AM – 7 PM</p>
@@ -79,15 +74,13 @@ const GetInTouch = () => {
                   Office No 207, 2nd Floor, Undri City Center Mall, Undri, Pune
                 </p>
               </div>
-
             </div>
 
-            {/* ACTIONS */}
             <div className="mt-6 space-y-3">
-
               <a
                 href="https://maps.google.com/?q=Career+Launcher+Pune+Undri"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="block text-center border border-gray-300 py-2.5 rounded-full text-sm hover:bg-gray-100 transition"
               >
                 Get Directions
@@ -99,16 +92,13 @@ const GetInTouch = () => {
               >
                 Book Free Counselling
               </button>
-
             </div>
-
           </div>
         </div>
       </div>
 
       {/* 📱 MOBILE VERSION */}
       <div className="md:hidden px-4 py-8">
-
         <h2 className="text-2xl font-semibold text-center mb-2">
           Get in Touch
         </h2>
@@ -122,11 +112,11 @@ const GetInTouch = () => {
             src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15138.437870613532!2d73.9130782!3d18.4560326!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2eb3ad7a249db%3A0x66d1d9a8558708c5!2sCareer%20Launcher%20Pune%20Undri!5e0!3m2!1sen!2sin!4v1730967737512!5m2!1sen!2sin"
             className="w-full h-full border-0"
             loading="lazy"
+            allowFullScreen
           />
         </div>
 
         <div className="space-y-3 text-sm">
-
           <div className="bg-gray-100 p-4 rounded-xl">
             <p className="text-gray-500 text-xs">Working Hours</p>
             <p className="font-medium">9AM – 7PM</p>
@@ -145,7 +135,6 @@ const GetInTouch = () => {
               Undri City Center Mall, Pune
             </p>
           </div>
-
         </div>
 
         <button

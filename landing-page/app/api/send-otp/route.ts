@@ -5,10 +5,15 @@ import { otpStore } from '@/app/lib/firebase-otp-store';
 
 // Helper function to get current hour in IST
 function getCurrentHourIST(): number {
-  // Create date in IST (UTC+5:30)
   const now = new Date();
   const istTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
   return istTime.getHours();
+}
+
+// Check if within allowed hours (10 AM to 9 PM)
+function isWithinAllowedHours(currentHour: number): boolean {
+  // Allowed: 10 AM (10) to 9 PM (21)
+  return currentHour >= 10 && currentHour < 21;
 }
 
 export async function POST(request: Request) {
@@ -32,25 +37,26 @@ export async function POST(request: Request) {
     
     // Get current hour in IST
     const currentHour = getCurrentHourIST();
-    const isDLTActive = currentHour >= 9 && currentHour < 21;
+    const isAllowed = isWithinAllowedHours(currentHour);
     
     console.log('IST Hour:', currentHour);
-    console.log('DLT Active:', isDLTActive);
+    console.log('Is Allowed (10 AM - 9 PM):', isAllowed);
     
-    // If outside DLT hours (9 PM - 9 AM IST), show message
-    if (!isDLTActive) {
+    // If outside allowed hours (9 PM - 10 AM), show message
+    if (!isAllowed) {
       let nextTime = '';
       if (currentHour >= 21) {
-        nextTime = 'tomorrow at 9 AM';
+        nextTime = 'tomorrow at 10 AM';
       } else {
-        nextTime = 'today at 9 AM';
+        nextTime = 'today at 10 AM';
       }
       
       return NextResponse.json({ 
         success: false, 
-        message: `SMS service is currently unavailable (9 PM - 9 AM IST). Please try again ${nextTime}.`,
+        message: `SMS service is currently available only from 10 AM to 9 PM. Please try again ${nextTime}.`,
         isTimeRestricted: true,
-        currentHour: currentHour
+        currentHour: currentHour,
+        allowedHours: '10 AM - 9 PM'
       }, { status: 503 });
     }
     
@@ -101,12 +107,14 @@ export async function POST(request: Request) {
     console.log('MSG91 Response:', data);
     
     if (data.type === 'success') {
+      console.log(`✅ OTP sent successfully to ${mobile}`);
       return NextResponse.json({ 
         success: true, 
         message: 'OTP sent successfully to your mobile!',
         expiryMinutes: 10
       });
     } else {
+      console.error('MSG91 Error:', data);
       return NextResponse.json({ 
         success: false, 
         message: data.message || 'Failed to send OTP. Please try again.'

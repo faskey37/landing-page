@@ -22,6 +22,7 @@ const HeroSection = () => {
   const [maxAttemptsReached, setMaxAttemptsReached] = useState(false);
   const [showDebugOtp, setShowDebugOtp] = useState(false);
   const [debugOtp, setDebugOtp] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -40,73 +41,78 @@ const HeroSection = () => {
     });
   };
 
-  // In your HeroSection.tsx - Update handleSendOTP
-
-const handleSendOTP = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  if (!formData.name.trim()) {
-    setSubmitStatus({ type: 'error', message: 'Please enter your full name' });
-    return;
-  }
-  
-  if (!formData.email.trim()) {
-    setSubmitStatus({ type: 'error', message: 'Please enter your email address' });
-    return;
-  }
-  
-  if (!formData.mobile || !/^[6-9]\d{9}$/.test(formData.mobile)) {
-    setSubmitStatus({ type: 'error', message: 'Please enter a valid 10-digit Indian mobile number' });
-    return;
-  }
-  
-  if (!formData.program) {
-    setSubmitStatus({ type: 'error', message: 'Please select a program' });
-    return;
-  }
-
-  setIsSubmitting(true);
-  setSubmitStatus({ type: null, message: '' });
-
-  try {
-    const response = await fetch('/api/send-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mobile: formData.mobile,
-        name: formData.name,
-        email: formData.email,
-        program: formData.program
-      })
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      setStep('otp');
-      setTimer(60);
-      setResendAttempts(1);
-      setMaxAttemptsReached(false);
-      setSubmitStatus({ type: 'success', message: 'OTP sent to your mobile number!' });
-      setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
-    } else {
-      // Handle time restriction error
-      if (data.isTimeRestricted) {
-        setSubmitStatus({ 
-          type: 'error', 
-          message: 'SMS service is currently unavailable (9 PM - 9 AM). Please try again between 9 AM and 9 PM.' 
-        });
-      } else {
-        setSubmitStatus({ type: 'error', message: data.message || 'Failed to send OTP' });
-      }
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      setSubmitStatus({ type: 'error', message: 'Please enter your full name' });
+      return;
     }
-  } catch (error) {
-    console.error('Send OTP error:', error);
-    setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    
+    if (!formData.email.trim()) {
+      setSubmitStatus({ type: 'error', message: 'Please enter your email address' });
+      return;
+    }
+    
+    if (!formData.mobile || !/^[6-9]\d{9}$/.test(formData.mobile)) {
+      setSubmitStatus({ type: 'error', message: 'Please enter a valid 10-digit Indian mobile number' });
+      return;
+    }
+    
+    if (!formData.program) {
+      setSubmitStatus({ type: 'error', message: 'Please select a program' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: '' });
+    setShowDebugOtp(false);
+    setShowSuccess(false);
+
+    try {
+      const response = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mobile: formData.mobile,
+          name: formData.name,
+          email: formData.email,
+          program: formData.program
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStep('otp');
+        setTimer(60);
+        setResendAttempts(1);
+        setMaxAttemptsReached(false);
+        setSubmitStatus({ type: 'success', message: 'OTP sent to your mobile number!' });
+        setTimeout(() => setSubmitStatus({ type: null, message: '' }), 3000);
+      } else {
+        if (data.isTimeRestricted) {
+          setSubmitStatus({ 
+            type: 'error', 
+            message: data.message || 'SMS service is currently unavailable. Please try again between 10 AM and 9 PM.' 
+          });
+        } else if (data.showOtpOnScreen) {
+          setDebugOtp(data.otp);
+          setShowDebugOtp(true);
+          setStep('otp');
+          setTimer(60);
+          setSubmitStatus({ type: 'info', message: 'Please use the debug OTP below to verify' });
+        } else {
+          setSubmitStatus({ type: 'error', message: data.message || 'Failed to send OTP' });
+        }
+      }
+    } catch (error) {
+      console.error('Send OTP error:', error);
+      setSubmitStatus({ type: 'error', message: 'Network error. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,13 +136,17 @@ const handleSendOTP = async (e: React.FormEvent) => {
       });
 
       const data = await response.json();
+      console.log('Verify Response:', data);
 
-      if (data.success) {
+      if (data.success === true) {
+        // Show success message inside the form area
+        setShowSuccess(true);
         setSubmitStatus({ 
           type: 'success', 
           message: 'Thank you! Your information has been saved. We will contact you soon.' 
         });
         
+        // Reset form after 5 seconds
         setTimeout(() => {
           setFormData({ name: '', email: '', mobile: '', program: '' });
           setOtp('');
@@ -145,7 +155,9 @@ const handleSendOTP = async (e: React.FormEvent) => {
           setMaxAttemptsReached(false);
           setShowDebugOtp(false);
           setDebugOtp('');
-        }, 3000);
+          setShowSuccess(false);
+          setSubmitStatus({ type: null, message: '' });
+        }, 5000);
       } else {
         setSubmitStatus({ type: 'error', message: data.message || 'Invalid OTP. Please try again.' });
       }
@@ -207,9 +219,9 @@ const handleSendOTP = async (e: React.FormEvent) => {
     setSubmitStatus({ type: null, message: '' });
     setShowDebugOtp(false);
     setDebugOtp('');
+    setShowSuccess(false);
   };
 
-  // Fill debug OTP automatically when clicked
   const fillDebugOtp = () => {
     if (debugOtp) {
       setOtp(debugOtp);
@@ -271,7 +283,7 @@ const handleSendOTP = async (e: React.FormEvent) => {
             </div>
           </div>
 
-          {/* Right Column - Form */}
+          {/* Right Column - Form Area (Only this updates) */}
           <div className="w-full lg:pl-8">
             <div className="sticky top-24 flex justify-center lg:justify-end">
               <div className="form-box" style={{ width: '550px', maxWidth: '100%' }}>
@@ -279,46 +291,44 @@ const handleSendOTP = async (e: React.FormEvent) => {
                   Get FREE Counseling Session
                 </h5>
                 
-                {step === 'otp' && showDebugOtp && debugOtp && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-400 rounded-lg">
-                    <p className="text-sm text-yellow-800 font-semibold">⚠️ SMS Service Unavailable (9 PM - 9 AM)</p>
-                    <p className="text-xs text-yellow-700 mt-1">Use this debug OTP to complete verification:</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <code className="text-xl font-mono font-bold text-yellow-900 bg-yellow-100 px-3 py-1 rounded">
-                        {debugOtp}
-                      </code>
-                      <button
-                        type="button"
-                        onClick={fillDebugOtp}
-                        className="text-xs bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                      >
-                        Auto-fill
-                      </button>
-                    </div>
-                    <p className="text-xs text-yellow-600 mt-2">
-                      This OTP will expire in 10 minutes
-                    </p>
-                  </div>
-                )}
-                
-                {submitStatus.type === 'success' && submitStatus.message.includes('Thank you') ? (
+                {showSuccess ? (
+                  // Success message inside the form box - NOT replacing whole page
                   <div className="text-center mt-4">
                     <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-8 rounded-lg text-center">
                       <svg className="w-12 h-12 mx-auto mb-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <p className="text-sm font-semibold">{submitStatus.message}</p>
+                      <p className="text-sm font-semibold">Thank you! Your information has been saved. We will contact you soon.</p>
                     </div>
                   </div>
                 ) : (
                   <form onSubmit={step === 'form' ? handleSendOTP : handleVerifyOTP} className="mt-4 space-y-4">
+                    {step === 'otp' && showDebugOtp && debugOtp && (
+                      <div className="p-3 bg-yellow-50 border border-yellow-400 rounded-lg">
+                        <p className="text-sm text-yellow-800 font-semibold">⚠️ Debug OTP Available</p>
+                        <p className="text-xs text-yellow-700 mt-1">Use this OTP to complete verification:</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <code className="text-xl font-mono font-bold text-yellow-900 bg-yellow-100 px-3 py-1 rounded">
+                            {debugOtp}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={fillDebugOtp}
+                            className="text-xs bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                          >
+                            Auto-fill
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
                     {submitStatus.type === 'error' && (
                       <div className="bg-red-50 border border-red-500 text-red-700 px-3 py-2 rounded-lg text-xs">
                         {submitStatus.message}
                       </div>
                     )}
                     
-                    {submitStatus.type === 'success' && step === 'otp' && (
+                    {submitStatus.type === 'success' && (
                       <div className="bg-green-50 border border-green-500 text-green-700 px-3 py-2 rounded-lg text-xs">
                         {submitStatus.message}
                       </div>
