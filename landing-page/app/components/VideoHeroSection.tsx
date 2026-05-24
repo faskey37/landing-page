@@ -12,7 +12,7 @@ interface VideoHeroSectionProps {
 }
 
 const VideoHeroSection: React.FC<VideoHeroSectionProps> = ({
-  videoSrc = "/videos/hero-video.mp4",
+  videoSrc = "/videos/video.mp4",
   posterSrc = "/images/poster.jpg",
   onButton1Click,
   onButton2Click
