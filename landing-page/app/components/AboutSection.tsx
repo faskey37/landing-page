@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 const AboutSection = () => {
   const programs = [
@@ -49,11 +50,19 @@ const AboutSection = () => {
     }
   ];
 
+  const LOGO_URL = "/images/logo.png";
+
   const handleClick = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  // 🔥 Animation configs
+  const scrollToForm = () => {
+    const formSection = document.querySelector('.form-box');
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const container = {
     hidden: {},
     show: {
@@ -69,24 +78,21 @@ const AboutSection = () => {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-b from-gray-50 to-gray-200">
+    <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* 🔥 SECTION FADE */}
         <motion.section
-  initial={{ opacity: 0, y: 40 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.6, ease: "easeOut" }}
-  viewport={{ once: true, margin: "-100px" }}
-  className="py-16 bg-gradient-to-b from-gray-50 to-gray-200"
->
-
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {/* ABOUT */}
           <div className="mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               About Career Launcher Pune – Undri
             </h2>
-            <p className="text-lg text-gray-700 max-w-4xl leading-relaxed">
+            <p className="text-lg text-gray-600 max-w-4xl leading-relaxed">
               Career Launcher Pune – Undri offers structured coaching programs for CAT, CLAT, IPMAT, and school academics.
               Our approach focuses on building strong fundamentals, improving problem-solving ability, and guiding students
               through a disciplined and result-oriented preparation journey.
@@ -94,77 +100,108 @@ const AboutSection = () => {
           </div>
 
           {/* TRUST */}
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-10">
-            <span>⭐ Trusted by 10,000+ Students</span>
-            <span>🏆 Proven Results</span>
-            <span>📍 Pune (Undri Center)</span>
+          <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-10">
+            <span className="flex items-center gap-1">✓ Trusted by 10,000+ Students</span>
+            <span className="flex items-center gap-1">✓ Proven Results</span>
+            <span className="flex items-center gap-1">✓ Pune (Undri Center)</span>
           </div>
 
           {/* TITLE */}
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Programs Offered
             </h2>
-            <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-500 max-w-3xl mx-auto">
               Explore programs designed for different academic stages and competitive exam goals.
             </p>
           </div>
 
-          {/* 🔥 GRID WITH STAGGER */}
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-10"
-          >
-            {programs.map((program, index) => (
-              <motion.div
-                key={index}
-                variants={item}
-                className="
-                  bg-white rounded-2xl p-6 
-                  border border-gray-100
-                  shadow-[0_10px_30px_rgba(0,0,0,0.08)]
-                  hover:shadow-[0_20px_60px_rgba(0,0,0,0.18)]
-                  hover:-translate-y-2 
-                  transition-transform duration-300 ease-out
-                "
-                style={{
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)"
-                }}
-              >
-                {/* Accent */}
-                <div className="w-10 h-1 bg-orange-500 rounded-full mb-4"></div>
-
-                <h3 className="text-xl font-bold text-black mb-2">
-                  {program.title}
-                </h3>
-
-                <p className="text-xs text-orange-600 font-medium mb-2">
-                  {program.tag}
-                </p>
-
-                <p className="text-gray-700 mb-4 leading-relaxed">
-                  {program.description}
-                </p>
-
-                <button
-                  onClick={() => handleClick(program.link)}
-                  className="text-[#e85222] font-semibold hover:underline"
+          {/* GRID - Slightly larger cards */}
+          <div className="flex justify-center">
+            <motion.div
+              variants={container}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center"
+            >
+              {programs.map((program, index) => (
+                <motion.div
+                  key={index}
+                  variants={item}
+                  className="group w-[300px] bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col"
                 >
-                  Get Details →
-                </button>
-              </motion.div>
-            ))}
-          </motion.div>
+                  {/* Card Header */}
+                  <div className="bg-gray-50 p-5 border-b border-gray-100">
+                    {/* Bookmark Icon */}
+                    <div className="flex justify-end mb-3">
+                      <div className="text-gray-400 opacity-60 hover:opacity-100 cursor-pointer transition">
+                        <svg height={14} width={14} stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" fill="none">
+                          <path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" strokeLinejoin="round" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                    </div>
+                    
+                    {/* Title */}
+                    <h3 className="text-lg font-bold text-gray-900 mb-1.5">
+                      {program.title}
+                    </h3>
+                    
+                    {/* Tag Badge */}
+                    <span className="inline-block text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                      {program.tag}
+                    </span>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-5 flex flex-col flex-1">
+                    {/* Description */}
+                    <p className="text-gray-600 text-sm leading-relaxed mb-4 min-h-[85px]">
+                      {program.description}
+                    </p>
+
+                    {/* Logo Section */}
+                    <div className="flex items-center gap-3 mb-4 pt-2 border-t border-gray-100">
+                      <div className="w-9 h-9 bg-white rounded-md shadow-sm flex items-center justify-center overflow-hidden relative border border-gray-100 flex-shrink-0">
+                        <Image 
+                          src={LOGO_URL}
+                          alt="Career Launcher Logo"
+                          width={32}
+                          height={32}
+                          className="object-contain p-1"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700">Career Launcher</p>
+                        <p className="text-xs text-gray-400">Pune (Undri)</p>
+                      </div>
+                    </div>
+
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => handleClick(program.link)}
+                      className="w-full bg-[#e85222] text-white font-semibold text-sm py-2.5 px-3 rounded-md hover:bg-[#cf4118] transition-all mt-auto"
+                    >
+                      Get Details →
+                    </button>
+                  </div>
+
+                  {/* Bottom Accent */}
+                  <div className="h-0.5 bg-gray-100 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
 
           {/* FINAL CTA */}
           <div className="text-center mt-14">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
               Not sure which program is right for you?
             </h3>
-            <button className="bg-[#e85222] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#cf4118] transition">
+            <button 
+              onClick={scrollToForm}
+              className="bg-[#e85222] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#cf4118] transition-all hover:shadow-md"
+            >
               Book Free Counselling
             </button>
           </div>
