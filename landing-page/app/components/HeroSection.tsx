@@ -25,16 +25,27 @@ const HeroSection = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [recaptchaReady, setRecaptchaReady] = useState(false);
 
-  // Check if reCAPTCHA is loaded
+  // Check if reCAPTCHA v3 is loaded and ready
   useEffect(() => {
     const checkRecaptcha = setInterval(() => {
       if (window.grecaptcha && window.grecaptcha.ready) {
         window.grecaptcha.ready(() => {
+          console.log('✅ reCAPTCHA v3 is ready');
           setRecaptchaReady(true);
         });
         clearInterval(checkRecaptcha);
       }
     }, 500);
+    
+    // Timeout after 10 seconds
+    setTimeout(() => {
+      clearInterval(checkRecaptcha);
+      if (!recaptchaReady) {
+        console.warn('⚠️ reCAPTCHA took too long to load');
+        setRecaptchaReady(true);
+      }
+    }, 10000);
+    
     return () => clearInterval(checkRecaptcha);
   }, []);
 
@@ -59,7 +70,6 @@ const HeroSection = () => {
       return;
     }
     
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setSubmitStatus({ type: 'error', message: 'Please enter a valid email address' });
@@ -76,7 +86,6 @@ const HeroSection = () => {
       return;
     }
 
-    // Check if reCAPTCHA is ready
     if (!recaptchaReady || !window.grecaptcha) {
       setSubmitStatus({ type: 'error', message: 'Security check is loading. Please wait and try again.' });
       return;
@@ -86,11 +95,13 @@ const HeroSection = () => {
     setSubmitStatus({ type: null, message: '' });
 
     try {
-      // Execute reCAPTCHA and get token
+      // Execute reCAPTCHA v3 (invisible)
       const token = await window.grecaptcha.execute(
         process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
         { action: 'submit' }
       );
+      
+      console.log('✅ reCAPTCHA token obtained');
 
       // Submit form data with reCAPTCHA token
       const response = await fetch('/api/submit-form', {
@@ -111,7 +122,6 @@ const HeroSection = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Show success message
         setShowSuccess(true);
         setSubmitStatus({ 
           type: 'success', 
@@ -137,7 +147,7 @@ const HeroSection = () => {
 
   return (
     <>
-      {/* Load reCAPTCHA script */}
+      {/* Load reCAPTCHA v3 script */}
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
         strategy="afterInteractive"
@@ -206,7 +216,6 @@ const HeroSection = () => {
                   </h5>
                   
                   {showSuccess ? (
-                    // Success message inside the form box
                     <div className="text-center mt-4">
                       <div className="bg-green-50 border border-green-500 text-green-700 px-4 py-8 rounded-lg text-center">
                         <svg className="w-12 h-12 mx-auto mb-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +303,7 @@ const HeroSection = () => {
                         </select>
                       </div>
                       
-                      {/* Hidden reCAPTCHA badge (v3 is invisible) */}
+                      {/* Hidden reCAPTCHA v3 badge */}
                       <div className="g-recaptcha" data-sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY} data-size="invisible"></div>
                       
                       {!recaptchaReady && (
