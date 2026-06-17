@@ -22,6 +22,31 @@ interface SubmitStatus {
   message: string;
 }
 
+// Device details interface
+interface DeviceDetails {
+  userAgent: string;
+  platform: string;
+  screenResolution: string;
+  language: string;
+  timezone: string;
+  cookiesEnabled: boolean;
+  doNotTrack: string | null;
+  deviceMemory: string;
+  hardwareConcurrency: string;
+  browserName: string;
+  browserVersion: string;
+  osName: string;
+  osVersion: string;
+  deviceType: string;
+  ipAddress?: string;
+  location?: {
+    city?: string;
+    region?: string;
+    country?: string;
+    timezone?: string;
+  };
+}
+
 const HeroSection = () => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -39,6 +64,107 @@ const HeroSection = () => {
   const [rateLimitRemaining, setRateLimitRemaining] = useState<number | null>(null);
   const submissionCountRef = useRef(0);
   const lastSubmissionTimeRef = useRef(0);
+
+  // Function to capture device details
+  const getDeviceDetails = useCallback(async (): Promise<DeviceDetails> => {
+    const details: DeviceDetails = {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      cookiesEnabled: navigator.cookieEnabled,
+      doNotTrack: navigator.doNotTrack || null,
+      deviceMemory: (navigator as any).deviceMemory ? `${(navigator as any).deviceMemory}GB` : 'Unknown',
+      hardwareConcurrency: navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} cores` : 'Unknown',
+      browserName: 'Unknown',
+      browserVersion: 'Unknown',
+      osName: 'Unknown',
+      osVersion: 'Unknown',
+      deviceType: 'Unknown'
+    };
+
+    // Detect browser
+    const userAgent = navigator.userAgent;
+    if (userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1) {
+      details.browserName = 'Chrome';
+      const match = userAgent.match(/Chrome\/(\d+\.\d+\.\d+\.\d+)/);
+      details.browserVersion = match ? match[1] : 'Unknown';
+    } else if (userAgent.indexOf('Firefox') > -1) {
+      details.browserName = 'Firefox';
+      const match = userAgent.match(/Firefox\/(\d+\.\d+)/);
+      details.browserVersion = match ? match[1] : 'Unknown';
+    } else if (userAgent.indexOf('Safari') > -1 && userAgent.indexOf('Chrome') === -1) {
+      details.browserName = 'Safari';
+      const match = userAgent.match(/Version\/(\d+\.\d+\.\d+)/);
+      details.browserVersion = match ? match[1] : 'Unknown';
+    } else if (userAgent.indexOf('Edg') > -1) {
+      details.browserName = 'Edge';
+      const match = userAgent.match(/Edg\/(\d+\.\d+\.\d+\.\d+)/);
+      details.browserVersion = match ? match[1] : 'Unknown';
+    } else if (userAgent.indexOf('Opera') > -1 || userAgent.indexOf('OPR') > -1) {
+      details.browserName = 'Opera';
+      const match = userAgent.match(/OPR\/(\d+\.\d+\.\d+\.\d+)/);
+      details.browserVersion = match ? match[1] : 'Unknown';
+    }
+
+    // Detect OS
+    if (userAgent.indexOf('Windows') > -1) {
+      details.osName = 'Windows';
+      if (userAgent.indexOf('Windows NT 10.0') > -1) details.osVersion = '10';
+      else if (userAgent.indexOf('Windows NT 6.3') > -1) details.osVersion = '8.1';
+      else if (userAgent.indexOf('Windows NT 6.2') > -1) details.osVersion = '8';
+      else if (userAgent.indexOf('Windows NT 6.1') > -1) details.osVersion = '7';
+    } else if (userAgent.indexOf('Mac OS X') > -1) {
+      details.osName = 'macOS';
+      const match = userAgent.match(/Mac OS X (\d+_\d+_\d+)/);
+      details.osVersion = match ? match[1].replace(/_/g, '.') : 'Unknown';
+    } else if (userAgent.indexOf('Linux') > -1) {
+      details.osName = 'Linux';
+    } else if (userAgent.indexOf('Android') > -1) {
+      details.osName = 'Android';
+      const match = userAgent.match(/Android (\d+\.\d+\.\d+)/);
+      details.osVersion = match ? match[1] : 'Unknown';
+    } else if (userAgent.indexOf('iOS') > -1 || userAgent.indexOf('iPhone') > -1 || userAgent.indexOf('iPad') > -1) {
+      details.osName = 'iOS';
+      const match = userAgent.match(/OS (\d+_\d+_\d+)/);
+      details.osVersion = match ? match[1].replace(/_/g, '.') : 'Unknown';
+    }
+
+    // Detect device type
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
+      details.deviceType = 'Mobile';
+    } else if (/iPad|Tablet/i.test(userAgent)) {
+      details.deviceType = 'Tablet';
+    } else {
+      details.deviceType = 'Desktop';
+    }
+
+    // Try to get IP and location via external API (optional)
+    try {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      if (ipResponse.ok) {
+        const ipData = await ipResponse.json();
+        details.ipAddress = ipData.ip;
+        
+        // Get location data based on IP
+        const locationResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
+        if (locationResponse.ok) {
+          const locationData = await locationResponse.json();
+          details.location = {
+            city: locationData.city,
+            region: locationData.region,
+            country: locationData.country_name,
+            timezone: locationData.timezone
+          };
+        }
+      }
+    } catch (error) {
+      console.log('[Device Details] Could not fetch IP/location:', error);
+    }
+
+    return details;
+  }, []);
 
   // Rate limiting: Max 3 submissions per minute from same session
   const checkRateLimit = useCallback((): boolean => {
@@ -194,6 +320,10 @@ const HeroSection = () => {
     setIsSubmitting(true);
     
     try {
+      // Get device details
+      const deviceDetails = await getDeviceDetails();
+      console.log('[Device Details]', deviceDetails);
+      
       // Execute reCAPTCHA v3
       const token = await window.grecaptcha.execute(
         process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
@@ -204,7 +334,7 @@ const HeroSection = () => {
         throw new Error('Failed to generate security token');
       }
       
-      // Submit to API
+      // Submit to API with device details
       const response = await fetch('/api/submit-form', {
         method: 'POST',
         headers: { 
@@ -219,7 +349,8 @@ const HeroSection = () => {
             program: formData.program,
             timestamp: new Date().toISOString(),
             userAgent: navigator.userAgent,
-            referrer: document.referrer || window.location.href
+            referrer: document.referrer || window.location.href,
+            deviceDetails: deviceDetails // Add device details
           }
         })
       });
